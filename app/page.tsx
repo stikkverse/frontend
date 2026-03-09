@@ -1,65 +1,89 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import { MOCK_DATA } from "@/lib/mockData";
+import type { DashboardData, TabItem } from "@/lib/type";
+import Header from "@/components/shared/Header";
+import Footer from "@/components/shared/Footer";
+import OverviewTab from "@/components/dashboard/tabs/OverviewTab";
+import MachinesTab from "@/components/dashboard/tabs/MachineTab";
+import ApiTab from "@/components/dashboard/tabs/ApiTab";
+
+type ActiveTab = "overview" | "machines" | "api";
+
+const buildTabs = (highRiskCount: number): TabItem[] => [
+  { id: "overview", label: "Overview", icon: "◈" },
+  { id: "machines", label: "Machines", icon: "⚙", badge: highRiskCount },
+  { id: "api", label: "API & Uploads", icon: "⟡" },
+];
+
+export default function Page() {
+  const [data] = useState<DashboardData>(MOCK_DATA);
+  const [loaded, setLoaded] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
+
+  const highRiskCount = data.machines.filter(
+    (m) => m.bearing_risk === "HIGH",
+  ).length;
+  const tabs = buildTabs(highRiskCount);
+
+  useEffect(() => {
+    const tm = setTimeout(() => setLoaded(true), 80);
+    return () => clearTimeout(tm);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="relative min-h-screen overflow-hidden bg-dash-bg text-dash-text transition-[background,color] duration-300">
+      <div
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          backgroundImage: `linear-gradient(var(--grid-color) 1px, transparent 1px),
+                            linear-gradient(90deg, var(--grid-color) 1px, transparent 1px)`,
+          backgroundSize: "64px 64px",
+        }}
+      />
+      <div
+        className="fixed left-0 right-0 h-1 pointer-events-none z-1 animate-scanline"
+        style={{
+          background:
+            "linear-gradient(transparent, var(--scanline-color), transparent)",
+        }}
+      />
+
+      <div className="relative z-2 px-5 pt-7 pb-12 w-[90%] mx-auto min-h-screen flex flex-col">
+        <div
+          className="transition-all duration-700"
+          style={{
+            opacity: loaded ? 1 : 0,
+            transform: loaded ? "translateY(0)" : "translateY(-12px)",
+            transitionTimingFunction: "cubic-bezier(0.16,1,0.3,1)",
+          }}
+        >
+          <Header
+            data={data}
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={(id) => setActiveTab(id as ActiveTab)}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div
+          className="transition-all duration-500 my-auto"
+          style={{
+            opacity: loaded ? 1 : 0,
+            transform: loaded ? "translateY(0)" : "translateY(10px)",
+            transitionTimingFunction: "cubic-bezier(0.16,1,0.3,1)",
+            transitionDelay: "150ms",
+          }}
+        >
+          {activeTab === "overview" && <OverviewTab data={data} />}
+          {activeTab === "machines" && <MachinesTab data={data} />}
+          {activeTab === "api" && <ApiTab data={data} />}
         </div>
-      </main>
+        <div className="mt-auto">
+          <Footer />
+        </div>
+      </div>
     </div>
   );
 }
