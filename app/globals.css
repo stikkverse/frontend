@@ -1,26 +1,110 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --bg:               #060a13;
+  --bg-alt:           #0c1220;
+  --surface:          #111a2e;
+  --surface-hover:    #162038;
+  --border:           #1c2d4a;
+  --border-light:     #243656;
+  --text:             #e8edf5;
+  --text-secondary:   #8899b4;
+  --text-muted:       #506380;
+  --green:            #34d399;
+  --green-bg:         rgba(52, 211, 153, 0.08);
+  --green-glow:       rgba(52, 211, 153, 0.35);
+  --amber:            #fbbf24;
+  --amber-bg:         rgba(251, 191, 36, 0.08);
+  --amber-glow:       rgba(251, 191, 36, 0.3);
+  --red:              #f87171;
+  --red-bg:           rgba(248, 113, 113, 0.08);
+  --red-glow:         rgba(248, 113, 113, 0.35);
+  --cyan:             #22d3ee;
+  --cyan-bg:          rgba(34, 211, 238, 0.08);
+  --cyan-glow:        rgba(34, 211, 238, 0.2);
+  --tab-active:       #22d3ee;
+  --tab-active-bg:    rgba(34, 211, 238, 0.1);
+  --search-bg:        #0c1220;
+  --grid-color:       rgba(28, 45, 74, 0.4);
+  --scanline-color:   rgba(34, 211, 238, 0.04);
+  --card-shadow:      0 2px 16px rgba(0, 0, 0, 0.3);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  --color-dash-bg:             var(--bg);
+  --color-dash-bg-alt:         var(--bg-alt);
+  --color-dash-surface:        var(--surface);
+  --color-dash-border:         var(--border);
+  --color-dash-text:           var(--text);
+  --color-dash-text-secondary: var(--text-secondary);
+  --color-dash-text-muted:     var(--text-muted);
+  --color-dash-red:            var(--red);
+  --color-dash-red-bg:         var(--red-bg);
+  --color-dash-cyan:           var(--cyan);
+  --color-dash-search-bg:      var(--search-bg);
+
+  --font-mono: "IBM Plex Mono", monospace;
+  --font-sans: "Satoshi", sans-serif;
+
+  --shadow-card: var(--card-shadow);
+
+  --animate-risk-pulse:   riskPulse 1.5s ease-in-out infinite;
+  --animate-status-pulse: statusPulse 2s infinite;
+  --animate-alert-slide:  alertSlide 0.4s ease-out;
+  --animate-scanline:     scanline 10s linear infinite;
+
+  @keyframes riskPulse   { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  @keyframes statusPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  @keyframes alertSlide  { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes scanline    { 0% { top: -4px; } 100% { top: 100%; } }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-theme="light"] {
+  --bg:               #f0f2f7;
+  --bg-alt:           #e8ecf3;
+  --surface:          #ffffff;
+  --surface-hover:    #f7f8fb;
+  --border:           #d5dbe6;
+  --border-light:     #e2e7f0;
+  --text:             #1a2332;
+  --text-secondary:   #4a5970;
+  --text-muted:       #8494a9;
+  --green:            #16a34a;
+  --green-bg:         rgba(22, 163, 74, 0.07);
+  --green-glow:       rgba(22, 163, 74, 0.2);
+  --amber:            #d97706;
+  --amber-bg:         rgba(217, 119, 6, 0.07);
+  --amber-glow:       rgba(217, 119, 6, 0.2);
+  --red:              #dc2626;
+  --red-bg:           rgba(220, 38, 38, 0.06);
+  --red-glow:         rgba(220, 38, 38, 0.2);
+  --cyan:             #0891b2;
+  --cyan-bg:          rgba(8, 145, 178, 0.06);
+  --cyan-glow:        rgba(8, 145, 178, 0.15);
+  --tab-active:       #0891b2;
+  --tab-active-bg:    rgba(8, 145, 178, 0.08);
+  --search-bg:        #f7f8fb;
+  --grid-color:       rgba(200, 210, 225, 0.5);
+  --scanline-color:   rgba(8, 145, 178, 0.02);
+  --card-shadow:      0 1px 8px rgba(0, 0, 0, 0.06);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+::selection {
+  background: var(--cyan-glow);
+  color: var(--text);
+}
+
+::-webkit-scrollbar        { width: 5px; }
+::-webkit-scrollbar-track  { background: var(--bg); }
+::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 3px; }
+input::placeholder          { color: var(--text-muted); }
