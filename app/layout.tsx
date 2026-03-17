@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Figtree } from "next/font/google";
+import { IBM_Plex_Mono, Figtree, Geist } from "next/font/google";
 import "./globals.css";
 import Providers from "@/context/Providers";
+import BackgroundGrid from "@/components/shared/BackgroundGrid";
+import { cn } from "@/lib/utils";
 
-const figtree = Figtree({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-sans",
-  display: "swap",
-});
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -28,9 +25,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${figtree.variable} ${plexMono.variable} antialiased w-full max-w-400 mx-auto`}>
-        <Providers>{children}</Providers>
+    <html lang="en" className={cn("font-sans", geist.variable)}>
+      <body
+        className={`${geist.variable} ${plexMono.variable} antialiased w-full max-w-400 mx-auto`}
+      >
+        <Providers>
+          <BackgroundGrid />
+          {children}
+        </Providers>
       </body>
     </html>
   );

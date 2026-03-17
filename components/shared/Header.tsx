@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { TabItem, DashboardData } from "@/lib/type";
 import TabNav from "../dashboard/TabNav";
-import ThemeToggle from "../dashboard/ThemeToggle";
+import ThemeToggle from "./ThemeToggle";
 
 interface HeaderProps {
   data: DashboardData;
