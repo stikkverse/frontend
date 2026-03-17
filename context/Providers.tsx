@@ -2,53 +2,63 @@
 
 import { useState, useEffect } from "react";
 import { ThemeContext } from "@/lib/ThemeContext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const client = new QueryClient();
 
 const STORAGE_KEY = "fs-theme";
 
-function getInitialTheme(): boolean {
-  if (typeof window === "undefined") return true;
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved !== null) return saved === "dark";
+type ThemePreference = "dark" | "light" | "system";
+
+function getInitialPreference(): ThemePreference {
+  if (typeof window === "undefined") return "system";
+  return (localStorage.getItem(STORAGE_KEY) as ThemePreference) ?? "system";
+}
+
+function resolveIsDark(pref: ThemePreference): boolean {
+  if (pref === "dark") return true;
+  if (pref === "light") return false;
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-const  Providers = ({ children }: { children: React.ReactNode }) => {
+const Providers = ({ children }: { children: React.ReactNode }) => {
+  const [preference, setPreference] = useState<ThemePreference>("system");
   const [isDark, setIsDark] = useState<boolean>(true);
-  const [mounted, setMounted] = useState<boolean>(false);
+  const [client] = useState(() => new QueryClient());
 
   useEffect(() => {
-    setIsDark(getInitialTheme());
-    setMounted(true);
+    const pref = getInitialPreference();
+    setPreference(pref);
+    setIsDark(resolveIsDark(pref));
   }, []);
 
-
   useEffect(() => {
-    if (!mounted) return;
-    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-    localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
-  }, [isDark, mounted]);
-
+    document.documentElement.setAttribute(
+      "data-theme",
+      isDark ? "dark" : "light",
+    );
+    localStorage.setItem(STORAGE_KEY, preference);
+  }, [isDark, preference]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem(STORAGE_KEY)) {
-        setIsDark(e.matches);
-      }
+      if (preference === "system") setIsDark(e.matches);
     };
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
-  }, []);
+  }, [preference]);
 
-  const toggleTheme = () => setIsDark((v) => !v);
-
-  if (!mounted) return <>{children}</>;
+  const setTheme = (pref: ThemePreference) => {
+    setPreference(pref);
+    setIsDark(resolveIsDark(pref));
+  };
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
-      {children}
+    <ThemeContext.Provider value={{ isDark, preference, setTheme }}>
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
     </ThemeContext.Provider>
   );
-}
+};
 
-export default Providers
+export default Providers;
