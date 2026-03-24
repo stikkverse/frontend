@@ -1,87 +1,105 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { MOCK_DATA } from "@/lib/mockData";
-import type { DashboardData, TabItem } from "@/lib/type";
-import Header from "@/components/shared/Header";
-import Footer from "@/components/shared/Footer";
-import OverviewTab from "@/components/dashboard/tabs/OverviewTab";
-import MachinesTab from "@/components/dashboard/tabs/MachineTab";
-import ApiTab from "@/components/dashboard/tabs/ApiTab";
+import {
+  MOCK_DASHBOARD_SUMMARY,
+  MOCK_DASHBOARD_MACHINES,
+} from "@/lib/mockData";
+import { getRiskColor, getHealthColor } from "@/lib/helper";
+import MetricCard from "@/components/dashboard/MetricCard";
+import AlertBanner from "@/components/dashboard/AlertBanner";
 
-type ActiveTab = "overview" | "machines" | "api";
-
-const buildTabs = (highRiskCount: number): TabItem[] => [
-  { id: "overview", label: "Overview", icon: "◈" },
-  { id: "machines", label: "Machines", icon: "⚙", badge: highRiskCount },
-  { id: "api", label: "API & Uploads", icon: "⟡" },
-];
-
-export default function Dashboard() {
-  const [data] = useState<DashboardData>(MOCK_DATA);
-  const [loaded, setLoaded] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
-
-  const highRiskCount = data.machines.filter(
-    (m) => m.bearing_risk === "HIGH",
-  ).length;
-  const tabs = buildTabs(highRiskCount);
-
-  useEffect(() => {
-    const tm = setTimeout(() => setLoaded(true), 80);
-    return () => clearTimeout(tm);
-  }, []);
+export default function OverviewPage() {
+  const summary = MOCK_DASHBOARD_SUMMARY;
+  const machines = MOCK_DASHBOARD_MACHINES;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-dash-bg text-dash-text transition-[background,color] duration-300">
-      <div
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage: `linear-gradient(var(--grid-color) 1px, transparent 1px),
-                            linear-gradient(90deg, var(--grid-color) 1px, transparent 1px)`,
-          backgroundSize: "64px 64px",
-        }}
-      />
-      <div
-        className="fixed left-0 right-0 h-1 pointer-events-none z-1 animate-scanline"
-        style={{
-          background:
-            "linear-gradient(transparent, var(--scanline-color), transparent)",
-        }}
-      />
-
-      <div className="relative z-2 px-5 pt-7 pb-12 w-[90%] mx-auto min-h-screen flex flex-col">
-        <div
-          className="transition-all duration-700"
-          style={{
-            opacity: loaded ? 1 : 0,
-            transform: loaded ? "translateY(0)" : "translateY(-12px)",
-            transitionTimingFunction: "cubic-bezier(0.16,1,0.3,1)",
-          }}
+    <div className="flex flex-col gap-5">
+      <div>
+        <h2 className="font-sans text-[20px] font-bold m-0 text-(--text)">
+          Energy &amp; Carbon Summary
+        </h2>
+        <p
+          className="font-sans text-[13px] mt-1 text-(--text-secondary)"
         >
-          <Header
-            data={data}
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={(id) => setActiveTab(id as ActiveTab)}
-          />
-        </div>
+          Aggregated performance metrics across {summary.machines_total}{" "}
+          machines in {summary.mill_name}
+        </p>
+      </div>
 
-        <div
-          className="transition-all duration-500 my-auto"
-          style={{
-            opacity: loaded ? 1 : 0,
-            transform: loaded ? "translateY(0)" : "translateY(10px)",
-            transitionTimingFunction: "cubic-bezier(0.16,1,0.3,1)",
-            transitionDelay: "150ms",
-          }}
+      <div
+        className="flex gap-5 items-center"
+      >
+        <MetricCard
+          label="TOTAL EXCESS CO₂"
+          value={summary.total_excess_co2_kg.toFixed(1)}
+          unit="kg"
+          accentColor="var(--amber)"
+          delay={100}
+        />
+        <MetricCard
+          label="AVOIDABLE COST"
+          value={summary.avoidable_cost_usd.toFixed(2)}
+          prefix="$"
+          accentColor="var(--red)"
+          delay={200}
+        />
+        <MetricCard
+          label="MACHINES ACTIVE"
+          value={`${summary.machines_running}/${summary.machines_total}`}
+          accentColor="var(--green)"
+          delay={300}
+        />
+        <MetricCard
+          label="MACHINES IDLE"
+          value={String(summary.machines_idle)}
+          accentColor="var(--text-muted)"
+          delay={400}
+        />
+      </div>
+
+      <AlertBanner machines={machines} />
+
+      <div className="my-6">
+        <h3
+          className="font-sans text-base font-semibold mb-3 text-(--text)"
         >
-          {activeTab === "overview" && <OverviewTab data={data} />}
-          {activeTab === "machines" && <MachinesTab data={data} />}
-          {activeTab === "api" && <ApiTab data={data} />}
-        </div>
-        <div className="mt-auto">
-          <Footer />
+          Fleet Health at a Glance
+        </h3>
+        <div className="flex gap-2.5 flex-wrap justify-between">
+          {machines.map((m) => {
+            const hc = getHealthColor(m.health_score);
+            const rc = getRiskColor(m.bearing_risk);
+            return (
+              <div
+                key={m.machine_id}
+                className="rounded-[10px] border bg-(--surface) p-6 lg:w-[19%] md:w-[19%] w-full mb-3"
+                style={{
+                  borderColor: "var(--border)",
+                  borderTop: `3px solid ${rc}`,
+                  boxShadow: "var(--card-shadow)",
+                }}
+              >
+                <p
+                  className="font-mono text-[14px] font-bold"
+                  style={{ color: "var(--text)" }}
+                >
+                  {m.machine_id}
+                </p>
+                <p
+                  className="font-mono text-[22px] font-bold mt-1"
+                  style={{ color: hc }}
+                >
+                  {m.health_score}
+                </p>
+                <p
+                  className="font-mono text-[9px] tracking-widest mt-0.5"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {m.status === "IDLE" ? "IDLE" : m.bearing_risk}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -36,5 +36,16 @@ export const signupSchema = z
     path: ["confirmPassword"],
   });
 
+export const inviteSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Enter a valid email address"),
+  role: z.enum(["MANAGER", "MEMBER"], {
+    required_error: "Select a role",
+  }),
+});
+
 export type LoginFormValues  = z.infer<typeof loginSchema>;
 export type SignupFormValues = z.infer<typeof signupSchema>;
+export type InviteFormValues = z.infer<typeof inviteSchema>;

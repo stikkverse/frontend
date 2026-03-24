@@ -1,61 +1,181 @@
+// ═══════════════════════════════════════════
+// Auth
+// ═══════════════════════════════════════════
+export type UserRole = "ADMIN" | "OWNER" | "MANAGER" | "MEMBER";
+
+export interface UserRegister {
+  email: string;
+  password: string;
+  full_name: string;
+  mill_name: string;
+  mill_tag: string;
+}
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface Token {
+  access_token: string;
+  token_type: string;
+  api_key: string | null;
+}
+
+export interface CurrentUser {
+  id: number;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  mill_id: string;
+  mill_name: string;
+  is_verified: boolean;
+  created_at: string;
+}
+
+export interface TeammateResponse {
+  id: number;
+  email: string;
+  role: UserRole;
+  is_verified: boolean;
+  created_at: string;
+}
+
+export interface TeammateInvite {
+  email: string;
+  role: UserRole;
+}
+
+export interface InvitationResponse {
+  id: number;
+  email: string;
+  role: UserRole;
+  expires_at: string;
+  is_accepted: boolean;
+  created_at: string;
+}
+
+// ═══════════════════════════════════════════
+// Dashboard
+// ═══════════════════════════════════════════
 export type BearingRisk = "HIGH" | "WARNING" | "NORMAL";
 export type MachineStatus = "RUNNING" | "IDLE";
-export type ThemeMode = "dark" | "light";
 
-export interface Machine {
+export interface DashboardSummary {
+  mill_id: string;
+  mill_name: string;
+  date: string;
+  total_excess_co2_kg: number;
+  avoidable_cost_usd: number;
+  machines_total: number;
+  machines_running: number;
+  machines_idle: number;
+  last_updated: string;
+}
+
+export interface DashboardMachine {
   machine_id: string;
   health_score: number;
   bearing_risk: BearingRisk;
   excess_co2_today_kg: number;
   status: MachineStatus;
+  last_reading_at: string;
 }
 
-export interface DashboardData {
+export interface MachineSpec {
+  machine_id: string;
+  machine_type: string;
+  rated_power_kw: number;
+  energy_source_type: string;
+}
+
+export interface MachineTrendPoint {
+  date: string;
+  health_score: number;
+  excess_co2_kg: number;
+  bearing_risk: BearingRisk;
+}
+
+export interface MachineTrends {
+  machine_id: string;
+  range: string;
+  data_points: MachineTrendPoint[];
+}
+
+// ═══════════════════════════════════════════
+// Alerts
+// ═══════════════════════════════════════════
+export type AlertSeverity = "HIGH" | "WARNING" | "INFO";
+
+export interface Alert {
+  id: number;
+  machine_id: string;
+  alert_type: string;
+  severity: AlertSeverity;
+  message: string;
+  created_at: string;
+  acknowledged: boolean;
+  acknowledged_at: string | null;
+  acknowledged_by: string | null;
+}
+
+// ═══════════════════════════════════════════
+// Data / Uploads
+// ═══════════════════════════════════════════
+export type ProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+
+export interface UploadHistoryItem {
+  id: number;
+  filename: string;
+  uploaded_at: string;
+  records_processed: number;
+  total_records: number;
+  status: ProcessingStatus;
+  uploaded_by: string;
+}
+
+export interface TaskResponse {
+  task_id: string;
+  status: ProcessingStatus;
+  progress: number;
+  message: string | null;
+  estimated_seconds_remaining: number | null;
+  records_processed: number;
+  total_records: number;
+}
+
+export interface Baseline {
+  machine_id: string;
+  mean_current: number;
+  std_current: number;
+  p95_current: number;
+  updated_at: string;
+}
+
+// ═══════════════════════════════════════════
+// Mill Summary
+// ═══════════════════════════════════════════
+export interface MillSummary {
   mill_id: string;
-  last_updated: string;
+  start_date: string;
+  end_date: string;
   total_excess_co2_kg: number;
   avoidable_cost_usd: number;
-  machines: Machine[];
-  api_key: string;
-  upload_count_7d: number;
-  last_upload: string;
+  machines: {
+    machine_id: string;
+    total_excess_co2_kg: number;
+    avg_health_score: number;
+    readings_count: number;
+  }[];
 }
 
-export interface Theme {
-  bg: string;
-  bgAlt: string;
-  surface: string;
-  surfaceHover: string;
-  border: string;
-  borderLight: string;
-  text: string;
-  textSecondary: string;
-  textMuted: string;
-  green: string;
-  greenBg: string;
-  greenGlow: string;
-  amber: string;
-  amberBg: string;
-  amberGlow: string;
-  red: string;
-  redBg: string;
-  redGlow: string;
-  cyan: string;
-  cyanBg: string;
-  cyanGlow: string;
-  accentGradient: string;
-  tabActive: string;
-  tabActiveBg: string;
-  searchBg: string;
-  shadow: string;
-  cardShadow: string;
-  gridColor: string;
-  scanlineColor: string;
-}
-
+// ═══════════════════════════════════════════
+// UI navigation
+// ═══════════════════════════════════════════
 export interface TabItem {
   id: string;
   label: string;
+  href: string;
   icon?: string;
   badge?: number;
 }
