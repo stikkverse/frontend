@@ -1,23 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { TabItem, DashboardData } from "@/lib/type";
-import TabNav from "../dashboard/TabNav";
 import ThemeToggle from "./ThemeToggle";
 
-interface HeaderProps {
-  data: DashboardData;
-  tabs: TabItem[];
-  activeTab: string;
-  onTabChange: (id: string) => void;
-}
-
-export default function Header({
-  data,
-  tabs,
-  activeTab,
-  onTabChange,
-}: HeaderProps) {
+export default function Header() {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -46,7 +32,7 @@ export default function Header({
               FACTORYSENSE.AI
             </p>
             <h1 className="font-sans text-[22px] font-bold leading-tight text-dash-text">
-              Mill {data.mill_id}{" "}
+              Mill 
               <span className="font-normal text-[18px] text-dash-text-muted">
                 — Vitals Monitor
               </span>
@@ -73,7 +59,6 @@ export default function Header({
           <ThemeToggle />
         </div>
       </div>
-      <TabNav tabs={tabs} active={activeTab} onChange={onTabChange} />
     </div>
   );
 }

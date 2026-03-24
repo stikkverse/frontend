@@ -27,22 +27,22 @@ export default function ApiKeyPanel({ apiKey, uploadCount, lastUpload }: ApiKeyP
 
         <div className="flex items-center gap-2 rounded-[10px] border border-dash-border bg-dash-bg-alt p-3 flex-wrap">
           <span
-            className="w-[7px] h-[7px] rounded-full shrink-0"
+            className="w-1.75 h-1.75 rounded-full shrink-0"
             style={{ background: "var(--cyan)", boxShadow: "0 0 6px var(--cyan-glow)" }}
           />
-          <code className="font-mono text-[13px] flex-1 overflow-hidden text-ellipsis whitespace-nowrap min-w-[120px] text-dash-cyan">
+          <code className="font-mono text-[13px] flex-1 overflow-hidden text-ellipsis whitespace-nowrap min-w-30 text-dash-cyan">
             {revealed ? apiKey : "fsa_B_••••••••••••"}
           </code>
           <div className="flex gap-1.5">
             <button
               onClick={() => setRevealed(!revealed)}
-              className="font-mono text-[10px] tracking-[0.05em] px-2.5 py-[5px] rounded-md border border-dash-border bg-transparent text-dash-text-secondary cursor-pointer"
+              className="font-mono text-[10px] tracking-[0.05em] px-2.5 py-1.25 rounded-md border border-dash-border bg-transparent text-dash-text-secondary cursor-pointer"
             >
               {revealed ? "HIDE" : "REVEAL"}
             </button>
             <button
               onClick={handleCopy}
-              className="font-mono text-[10px] font-semibold tracking-[0.05em] px-3 py-[5px] rounded-md cursor-pointer transition-all duration-200"
+              className="font-mono text-[10px] font-semibold tracking-[0.05em] px-3 py-1.25 rounded-md cursor-pointer transition-all duration-200"
               style={{
                 background: copied ? "var(--green)" : "var(--cyan-bg)",
                 border: `1px solid ${copied ? "var(--green)" : "var(--cyan)"}`,

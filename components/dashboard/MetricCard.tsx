@@ -28,7 +28,7 @@ export default function MetricCard({
 
   return (
     <div
-      className="relative overflow-hidden rounded-[14px] border border-dash-border bg-dash-surface p-[22px_24px] shadow-card transition-all duration-[600ms]"
+      className="relative overflow-hidden rounded-[14px] border border-dash-border bg-(--surface) py-8 px-6 shadow-card transition-all duration-600 lg:w-[20%] md:w-[20%] w-full"
       style={{
         opacity: show ? 1 : 0,
         transform: show ? "translateY(0)" : "translateY(12px)",
@@ -36,7 +36,7 @@ export default function MetricCard({
       }}
     >
       <div
-        className="absolute top-0 left-0 right-0 h-[3px]"
+        className="absolute top-0 left-0 right-0 h-0.75"
         style={{
           background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
         }}
@@ -50,10 +50,7 @@ export default function MetricCard({
             {prefix}
           </span>
         )}
-        <span
-          className="font-mono text-[36px] font-bold leading-none"
-          style={{ color: accentColor }}
-        >
+        <span className="font-mono text-[36px] font-bold leading-none text-accentColor">
           {value}
         </span>
         {unit && (

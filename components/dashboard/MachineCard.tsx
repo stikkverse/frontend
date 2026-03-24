@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { getRiskColor, getRiskGlow, getHealthColor, getCO2Color } from "@/lib/helper";
-import type { Machine } from "@/lib/type";
+import type { DashboardMachine } from "@/lib/type";
 import RiskBadge from "./RiskBadge";
 import HealthRing from "./HealthRing";
 import PulseLine from "./PulseLine";
 
 interface MachineCardProps {
-  machine: Machine;
+  machine: DashboardMachine;
   index: number;
 }
 
