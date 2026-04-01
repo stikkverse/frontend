@@ -1,6 +1,3 @@
-// ═══════════════════════════════════════════
-// Auth
-// ═══════════════════════════════════════════
 export type UserRole = "ADMIN" | "OWNER" | "MANAGER" | "MEMBER";
 
 export interface UserRegister {
@@ -46,6 +43,10 @@ export interface TeammateInvite {
   role: UserRole;
 }
 
+export interface TeammateUpdate {
+  role: UserRole;
+}
+
 export interface InvitationResponse {
   id: number;
   email: string;
@@ -55,9 +56,8 @@ export interface InvitationResponse {
   created_at: string;
 }
 
-// ═══════════════════════════════════════════
 // Dashboard
-// ═══════════════════════════════════════════
+
 export type BearingRisk = "HIGH" | "WARNING" | "NORMAL";
 export type MachineStatus = "RUNNING" | "IDLE";
 
@@ -102,9 +102,8 @@ export interface MachineTrends {
   data_points: MachineTrendPoint[];
 }
 
-// ═══════════════════════════════════════════
+
 // Alerts
-// ═══════════════════════════════════════════
 export type AlertSeverity = "HIGH" | "WARNING" | "INFO";
 
 export interface Alert {
@@ -119,9 +118,8 @@ export interface Alert {
   acknowledged_by: string | null;
 }
 
-// ═══════════════════════════════════════════
+
 // Data / Uploads
-// ═══════════════════════════════════════════
 export type ProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 export interface UploadHistoryItem {
@@ -132,6 +130,12 @@ export interface UploadHistoryItem {
   total_records: number;
   status: ProcessingStatus;
   uploaded_by: string;
+}
+
+export interface UploadResponse {
+  task_id: string;
+  message: string;
+  estimated_initial_seconds: number;
 }
 
 export interface TaskResponse {
@@ -152,9 +156,13 @@ export interface Baseline {
   updated_at: string;
 }
 
-// ═══════════════════════════════════════════
+export interface BaselineUpdate {
+  mean_current: number;
+  std_current: number;
+  p95_current: number;
+}
+
 // Mill Summary
-// ═══════════════════════════════════════════
 export interface MillSummary {
   mill_id: string;
   start_date: string;
@@ -169,9 +177,33 @@ export interface MillSummary {
   }[];
 }
 
-// ═══════════════════════════════════════════
+export interface MillSummaryParams {
+  millId: string;
+  startDate?: string;
+  endDate?: string;
+  machineId?: string;
+}
+
+// Admin
+export interface UserCreate {
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
+export interface MillCreate {
+  mill_tag: string;
+  mill_name: string;
+  user_id: number;
+}
+
+export interface StatsUpdate {
+  health_score: number;
+  bearing_risk: string;
+  message: string;
+}
+
 // UI navigation
-// ═══════════════════════════════════════════
 export interface TabItem {
   id: string;
   label: string;

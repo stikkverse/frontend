@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import DashboardNav from "@/components/dashboard/DashboardNav";
-import { MOCK_ALERTS, MOCK_CURRENT_USER } from "@/lib/mockData";
+import { useUnacknowledgedCount } from "@/hooks/useAlerts";
 
 export default function DashboardLayout({
   children,
@@ -13,9 +13,8 @@ export default function DashboardLayout({
 }) {
   const [loaded, setLoaded] = useState(false);
 
-  const unacknowledgedAlerts = MOCK_ALERTS.filter(
-    (a) => !a.acknowledged,
-  ).length;
+  // Live alert count from the API — falls back to 0 while loading
+  const unacknowledgedAlerts = useUnacknowledgedCount();
 
   useEffect(() => {
     const tm = setTimeout(() => setLoaded(true), 80);

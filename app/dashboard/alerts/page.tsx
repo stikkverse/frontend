@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MOCK_ALERTS } from "@/lib/mockData";
+import { useAlerts, useAcknowledgeAlert } from "@/hooks/useAlerts";
 import type { Alert } from "@/lib/type";
 import { getRiskColor, getRiskBg } from "@/lib/helper";
 import type { BearingRisk } from "@/lib/type";
@@ -19,9 +19,11 @@ function formatRelativeTime(dateStr: string): string {
 function AlertCard({
   alert,
   onAcknowledge,
+  isPending,
 }: {
   alert: Alert;
   onAcknowledge: (id: number) => void;
+  isPending: boolean;
 }) {
   const color = getRiskColor(alert.severity as BearingRisk);
   const bg = getRiskBg(alert.severity as BearingRisk);
@@ -39,7 +41,9 @@ function AlertCard({
       {!alert.acknowledged && (
         <div
           className="h-0.75"
-          style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
+          style={{
+            background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+          }}
         />
       )}
       <div className="p-5">
@@ -65,8 +69,12 @@ function AlertCard({
                   {alert.severity}
                 </span>
               </div>
-              <p className="font-mono text-[9px] tracking-widest mt-0.5" style={{ color: "var(--text-muted)" }}>
-                {alert.alert_type.replace(/_/g, " ")} — {formatRelativeTime(alert.created_at)}
+              <p
+                className="font-mono text-[9px] tracking-widest mt-0.5"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {alert.alert_type.replace(/_/g, " ")} —{" "}
+                {formatRelativeTime(alert.created_at)}
               </p>
             </div>
           </div>
@@ -74,19 +82,23 @@ function AlertCard({
           {!alert.acknowledged && (
             <button
               onClick={() => onAcknowledge(alert.id)}
-              className="shrink-0 font-mono text-[10px] font-semibold tracking-[0.06em] px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 hover:opacity-80"
+              disabled={isPending}
+              className="shrink-0 font-mono text-[10px] font-semibold tracking-[0.06em] px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 hover:opacity-80 disabled:opacity-50 disabled:cursor-wait"
               style={{
                 background: "var(--cyan-bg)",
                 border: "1px solid var(--cyan)",
                 color: "var(--cyan)",
               }}
             >
-              ACKNOWLEDGE
+              {isPending ? "..." : "ACKNOWLEDGE"}
             </button>
           )}
 
           {alert.acknowledged && (
-            <span className="shrink-0 font-mono text-[9px] tracking-[0.08em] px-2 py-1 rounded-md" style={{ color: "var(--green)", background: "var(--green-bg)" }}>
+            <span
+              className="shrink-0 font-mono text-[9px] tracking-[0.08em] px-2 py-1 rounded-md"
+              style={{ color: "var(--green)", background: "var(--green-bg)" }}
+            >
               ✓ ACK&apos;D
             </span>
           )}
@@ -112,19 +124,28 @@ function AlertCard({
   );
 }
 
-export default function AlertsPage() {
-  const [alerts, setAlerts] = useState<Alert[]>(MOCK_ALERTS);
-  const [filter, setFilter] = useState<"all" | "active" | "acknowledged">("all");
+// Skeleton loader for initial load
+function AlertSkeleton() {
+  return (
+    <div
+      className="rounded-[14px] border p-5 animate-pulse"
+      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-8 h-8 rounded-full bg-(--bg-alt) shrink-0" />
+        <div className="flex-1">
+          <div className="h-4 w-32 rounded bg-(--bg-alt) mb-2" />
+          <div className="h-3 w-48 rounded bg-(--bg-alt)" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  const handleAcknowledge = (id: number) => {
-    setAlerts((prev) =>
-      prev.map((a) =>
-        a.id === id
-          ? { ...a, acknowledged: true, acknowledged_at: new Date().toISOString(), acknowledged_by: "mgr@millb.com" }
-          : a,
-      ),
-    );
-  };
+export default function AlertsPage() {
+  const { data: alerts = [], isLoading, isError } = useAlerts();
+  const { mutate: acknowledge, isPending } = useAcknowledgeAlert();
+  const [filter, setFilter] = useState<"all" | "active" | "acknowledged">("all");
 
   const activeCount = alerts.filter((a) => !a.acknowledged).length;
 
@@ -142,10 +163,16 @@ export default function AlertsPage() {
             Alerts
           </h2>
           <p className="font-sans text-[13px] mt-1" style={{ color: "var(--text-secondary)" }}>
-            {activeCount} active alert{activeCount !== 1 ? "s" : ""} requiring attention
+            {isLoading
+              ? "Loading alerts..."
+              : `${activeCount} active alert${activeCount !== 1 ? "s" : ""} requiring attention`}
           </p>
         </div>
-        <div className="flex gap-1 p-1 rounded-lg border" style={{ borderColor: "var(--border)", background: "var(--bg-alt)" }}>
+
+        <div
+          className="flex gap-1 p-1 rounded-lg border"
+          style={{ borderColor: "var(--border)", background: "var(--bg-alt)" }}
+        >
           {(["all", "active", "acknowledged"] as const).map((f) => (
             <button
               key={f}
@@ -161,7 +188,11 @@ export default function AlertsPage() {
               {f === "active" && activeCount > 0 && (
                 <span
                   className="ml-1.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold"
-                  style={{ background: "var(--red-bg)", color: "var(--red)", border: "1px solid var(--red)" }}
+                  style={{
+                    background: "var(--red-bg)",
+                    color: "var(--red)",
+                    border: "1px solid var(--red)",
+                  }}
                 >
                   {activeCount}
                 </span>
@@ -171,14 +202,37 @@ export default function AlertsPage() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="text-center py-16 font-mono text-[13px]" style={{ color: "var(--text-muted)" }}>
+      {isError && (
+        <div
+          className="rounded-[10px] border p-4 font-mono text-[12px]"
+          style={{ borderColor: "var(--red)", color: "var(--red)", background: "var(--red-bg)" }}
+        >
+          ⚠ Failed to load alerts. Retrying automatically…
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <AlertSkeleton key={i} />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div
+          className="text-center py-16 font-mono text-[13px]"
+          style={{ color: "var(--text-muted)" }}
+        >
           {filter === "active" ? "No active alerts — all clear" : "No alerts to show"}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((alert) => (
-            <AlertCard key={alert.id} alert={alert} onAcknowledge={handleAcknowledge} />
+            <AlertCard
+              key={alert.id}
+              alert={alert}
+              onAcknowledge={acknowledge}
+              isPending={isPending}
+            />
           ))}
         </div>
       )}
