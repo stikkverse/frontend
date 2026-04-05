@@ -7,14 +7,23 @@ const axiosInstance = axios.create({
   },
 });
 
-// Attach JWT Bearer token for Auth/Admin routes (HTTPBearer secured)
+const PUBLIC_PATHS = [
+  "/api/v1/auth/login",
+  "/api/v1/auth/register",
+  "/api/v1/auth/verify-email",
+  "/api/v1/auth/forgot-password",
+  "/api/v1/auth/reset-password",
+  "/api/v1/auth/accept-invite",
+  "/api/v1/auth/invitations/validate",
+];
+
 axiosInstance.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // Attach x-api-key for Data/Dashboard/Alerts routes
+
     const apiKey = localStorage.getItem("api_key");
     if (apiKey) {
       config.headers["x-api-key"] = apiKey;
@@ -23,15 +32,17 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-// Global 401 handler — clear storage and redirect to login
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== "undefined") {
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      const requestPath = error.config?.url ?? "";
+      const isPublic = PUBLIC_PATHS.some((path) => requestPath.includes(path));
+
+      if (!isPublic) {
         localStorage.removeItem("access_token");
         localStorage.removeItem("api_key");
-        window.location.href = "/login";
+        window.location.href = "/";
       }
     }
     return Promise.reject(error);

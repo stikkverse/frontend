@@ -5,7 +5,9 @@ import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import { loginSchema, type LoginFormValues } from "@/lib/schema";
+import { useAuth } from "@/lib/authContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,6 +19,7 @@ import {
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const { login } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -26,8 +29,15 @@ export default function LoginForm() {
   const { isSubmitting } = form.formState;
 
   const onSubmit = async (values: LoginFormValues) => {
-    await new Promise((r) => setTimeout(r, 1200));
-    console.log(values);
+    try {
+      await login(values.email, values.password);
+      toast.success("Signed in successfully");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { detail?: string } } };
+      toast.error(
+        err.response?.data?.detail ?? "Invalid credentials. Please try again.",
+      );
+    }
   };
 
   return (
@@ -58,7 +68,7 @@ export default function LoginForm() {
                   placeholder="you@company.com"
                   autoComplete="email"
                   aria-invalid={fieldState.invalid}
-                  className="bg-(--bg-alt) border-boredr text-(--text) font-mono text-[13px] rounded-[10px] focus-visible:ring-(--cyan) focus-visible:border-(--cyan) py-5"
+                  className="bg-(--bg-alt) border-border text-(--text) font-mono text-[13px] rounded-[10px] focus-visible:ring-(--cyan) focus-visible:border-(--cyan) py-5"
                 />
                 {fieldState.invalid && (
                   <FieldError

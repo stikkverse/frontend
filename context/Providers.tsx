@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ThemeContext } from "@/lib/ThemeContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import AuthProvider from "./AuthProvider";
 
 const STORAGE_KEY = "fs-theme";
 
@@ -22,8 +23,7 @@ function resolveIsDark(pref: ThemePreference): boolean {
 const Providers = ({ children }: { children: React.ReactNode }) => {
   const [preference, setPreference] = useState<ThemePreference>("system");
   const [isDark, setIsDark] = useState<boolean>(true);
-  // One QueryClient per component instance — correct SSR-safe pattern.
-  // The module-level `const client` was removed to avoid shadowing this.
+
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -70,7 +70,9 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <ThemeContext.Provider value={{ isDark, preference, setTheme }}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>{children}</AuthProvider>
+      </QueryClientProvider>
     </ThemeContext.Provider>
   );
 };

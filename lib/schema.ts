@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const loginSchema = z.object({
   email: z
-  .email("Enter a valid email address")
-  .min(1, "Email is required"),
+    .email("Enter a valid email address")
+    .min(1, "Email is required"),
   password: z
     .string()
     .min(1, "Password is required")
@@ -14,13 +14,22 @@ export const loginSchema = z.object({
 
 export const signupSchema = z
   .object({
-    companyName: z
+    full_name: z
       .string()
-      .min(1, "Company name is required")
-      .min(2, "Company name is too short"),
+      .min(1, "Full name is required")
+      .min(2, "Name is too short"),
     email: z
-    .email("Enter a valid email address")
-    .min(1, "Email is required"),
+      .email("Enter a valid email address")
+      .min(1, "Email is required"),
+    mill_name: z
+      .string()
+      .min(1, "Mill name is required")
+      .min(2, "Mill name is too short"),
+    mill_tag: z
+      .string()
+      .min(1, "Mill tag is required")
+      .max(10, "Mill tag must be 10 characters or less")
+      .regex(/^[A-Za-z0-9]+$/, "Mill tag must be alphanumeric"),
     password: z
       .string()
       .min(1, "Password is required")

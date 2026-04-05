@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, Figtree } from "next/font/google";
 import "./globals.css";
 import Providers from "@/context/Providers";
 import BackgroundGrid from "@/components/shared/BackgroundGrid";
+import { Toaster } from "sonner";
 
 const figtree = Figtree({
   subsets: ["latin"],
@@ -35,6 +36,13 @@ export default function RootLayout({
       >
         <Providers>
           <BackgroundGrid />
+          <Toaster
+            position="top-center"
+            richColors
+            toastOptions={{
+              className:
+                "font-mono text-[12px] border border-(--border) bg-(--surface) text-(--text)",
+            }} />
           {children}
         </Providers>
       </body>
