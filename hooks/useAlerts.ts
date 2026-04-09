@@ -8,6 +8,7 @@ export function useAlerts() {
   return useQuery({
     queryKey: queryKeys.alerts.all(),
     queryFn: alertsApi.getAlerts,
+    placeholderData: [] as Alert[],
     refetchInterval: 20_000,
     staleTime: 10_000,
   });
@@ -23,7 +24,6 @@ export function useAcknowledgeAlert() {
     onMutate: async (alertId: number) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.alerts.all() });
       const previous = queryClient.getQueryData<Alert[]>(queryKeys.alerts.all());
-
       queryClient.setQueryData<Alert[]>(queryKeys.alerts.all(), (old = []) =>
         old.map((a) =>
           a.id === alertId
@@ -36,7 +36,6 @@ export function useAcknowledgeAlert() {
             : a,
         ),
       );
-
       return { previous };
     },
 
@@ -52,7 +51,7 @@ export function useAcknowledgeAlert() {
   });
 }
 
-/** Derived: count of unacknowledged alerts for the nav badge */
+/**count of unacknowledged alerts for the nav badge */
 export function useUnacknowledgedCount(): number {
   const { data = [] } = useAlerts();
   return data.filter((a) => !a.acknowledged).length;

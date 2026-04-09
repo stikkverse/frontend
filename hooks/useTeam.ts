@@ -1,8 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { teamApi } from "@/lib/api";
-import type { InvitationResponse, TeammateInvite, TeammateUpdate } from "@/lib/type";
+import type { InvitationResponse, TeammateInvite, TeammateResponse, TeammateUpdate } from "@/lib/type";
 import { queryKeys } from "@/lib/queryKeys";
-
 
 /** GET /api/v1/auth/me */
 export function useCurrentUser() {
@@ -13,12 +12,12 @@ export function useCurrentUser() {
   });
 }
 
-
 /** GET /api/v1/auth/teammates */
 export function useTeammates() {
   return useQuery({
     queryKey: queryKeys.team.teammates(),
     queryFn: teamApi.getTeammates,
+    placeholderData: [] as TeammateResponse[],
     staleTime: 2 * 60_000,
   });
 }
@@ -51,13 +50,12 @@ export function useRemoveTeammate() {
   });
 }
 
-//  Invitations
-
 /** GET /api/v1/auth/invitations */
 export function useInvitations() {
   return useQuery({
     queryKey: queryKeys.team.invitations(),
     queryFn: teamApi.getInvitations,
+    placeholderData: [] as InvitationResponse[],
     staleTime: 60_000,
   });
 }
@@ -84,7 +82,7 @@ export function useResendInvitation() {
   });
 }
 
-
+/** DELETE /api/v1/auth/invitations/{invitation_id} */
 export function useRevokeInvitation() {
   const queryClient = useQueryClient();
   return useMutation({

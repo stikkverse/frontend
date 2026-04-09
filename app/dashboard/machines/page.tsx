@@ -28,8 +28,10 @@ function CardSkeleton() {
 }
 
 export default function MachinesPage() {
-  const { data: machines = [], isLoading: machinesLoading, isError } = useDashboardMachines();
-  const { data: specs = [], isLoading: specsLoading } = useMachineSpecs();
+  const { data: machinesData, isLoading: machinesLoading, isError } = useDashboardMachines();
+  const machines = Array.isArray(machinesData) ? machinesData : [];
+  const { data: specsData, isLoading: specsLoading } = useMachineSpecs();
+  const specs = Array.isArray(specsData) ? specsData : [];
 
   const [search, setSearch] = useState("");
 
@@ -122,36 +124,36 @@ export default function MachinesPage() {
             <tbody>
               {specsLoading
                 ? Array.from({ length: 4 }).map((_, i) => (
-                    <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                      {Array.from({ length: 4 }).map((__, j) => (
-                        <td key={j} className="px-4 py-3">
-                          <div className="h-3 w-24 rounded bg-(--bg-alt) animate-pulse" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))
+                  <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
+                    {Array.from({ length: 4 }).map((__, j) => (
+                      <td key={j} className="px-4 py-3">
+                        <div className="h-3 w-24 rounded bg-(--bg-alt) animate-pulse" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
                 : specs.map((s) => (
-                    <tr
-                      key={s.machine_id}
-                      className="transition-colors duration-150"
-                      style={{ borderTop: "1px solid var(--border)" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                    >
-                      <td className="font-mono text-[13px] font-semibold px-4 py-3" style={{ color: "var(--text)" }}>
-                        {s.machine_id}
-                      </td>
-                      <td className="font-sans text-[13px] px-4 py-3" style={{ color: "var(--text-secondary)" }}>
-                        {s.machine_type}
-                      </td>
-                      <td className="font-mono text-[13px] px-4 py-3" style={{ color: "var(--text)" }}>
-                        {s.rated_power_kw} <span style={{ color: "var(--text-muted)" }}>kW</span>
-                      </td>
-                      <td className="font-mono text-[10px] tracking-[0.08em] uppercase px-4 py-3" style={{ color: "var(--text-muted)" }}>
-                        {s.energy_source_type}
-                      </td>
-                    </tr>
-                  ))}
+                  <tr
+                    key={s.machine_id}
+                    className="transition-colors duration-150"
+                    style={{ borderTop: "1px solid var(--border)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <td className="font-mono text-[13px] font-semibold px-4 py-3" style={{ color: "var(--text)" }}>
+                      {s.machine_id}
+                    </td>
+                    <td className="font-sans text-[13px] px-4 py-3" style={{ color: "var(--text-secondary)" }}>
+                      {s.machine_type}
+                    </td>
+                    <td className="font-mono text-[13px] px-4 py-3" style={{ color: "var(--text)" }}>
+                      {s.rated_power_kw} <span style={{ color: "var(--text-muted)" }}>kW</span>
+                    </td>
+                    <td className="font-mono text-[10px] tracking-[0.08em] uppercase px-4 py-3" style={{ color: "var(--text-muted)" }}>
+                      {s.energy_source_type}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

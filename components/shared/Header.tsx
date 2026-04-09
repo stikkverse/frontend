@@ -5,10 +5,11 @@ import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "@/lib/authContext";
 
 export default function Header() {
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState<Date | null>(null);
   const { user, logout } = useAuth();
 
-  useEffect(() => {
+   useEffect(() => {
+    setNow(new Date()); // set initial value on client only
     const interval = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(interval);
   }, []);
@@ -38,12 +39,14 @@ export default function Header() {
           <div className="flex items-center gap-1.5 font-mono text-[10px] text-(--text-muted)">
             <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-(--green) shadow-[0_0_6px_var(--green)]" />
             LIVE —{" "}
-            {now.toLocaleString("en-US", {
-              month: "short",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {now
+              ? now.toLocaleString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "—"}
           </div>
           <ThemeToggle />
           <button

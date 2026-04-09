@@ -43,12 +43,12 @@ export const dashboardApi = {
   },
 
   /** GET /api/v1/dashboard/machine-specs */
-  getMachineSpecs: async (): Promise<MachineSpec[]> => {
-    const { data } = await axiosInstance.get<MachineSpec[]>(
-      "/api/v1/dashboard/machine-specs",
-    );
-    return data;
-  },
+ getMachineSpecs: async (): Promise<MachineSpec[]> => {
+  const { data } = await axiosInstance.get<Record<string, MachineSpec> | MachineSpec[]>(
+    "/api/v1/dashboard/machine-specs",
+  );
+  return Array.isArray(data) ? data : Object.values(data);
+},
 
   /** GET /api/v1/dashboard/machines/{machine_id}/trends */
   getMachineTrends: async (
@@ -282,8 +282,7 @@ export const teamApi = {
   },
 };
 
-// Admin   — HTTPBearer secured (Admin role required)
-
+// Admin
 export const adminApi = {
   /** GET /api/v1/admin/users */
   listUsers: async (): Promise<unknown[]> => {

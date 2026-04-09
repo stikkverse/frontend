@@ -1,21 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { uploadsApi } from "@/lib/api";
-import type { BaselineUpdate, MillSummaryParams } from "@/lib/type";
+import type { BaselineUpdate, Baseline, UploadHistoryItem, MillSummaryParams } from "@/lib/type";
 import { queryKeys } from "@/lib/queryKeys";
-
-// ── Upload history ────────────────────────────────────────────────────────────
 
 /** GET /api/v1/data/history */
 export function useUploadHistory() {
   return useQuery({
     queryKey: queryKeys.uploads.history(),
     queryFn: uploadsApi.getHistory,
+    placeholderData: [] as UploadHistoryItem[],
     refetchInterval: 60_000,
     staleTime: 30_000,
+    select: (data) =>
+      Array.isArray(data)
+        ? data
+        : Object.values(data as Record<string, UploadHistoryItem>),
   });
 }
-
-// ── Upload mutations ──────────────────────────────────────────────────────────
 
 type UploadPayload = { file: File; onProgress?: (pct: number) => void };
 
@@ -57,12 +58,7 @@ export function useUploadBaselineUpdate() {
   });
 }
 
-// ── Task polling ──────────────────────────────────────────────────────────────
-
-/**
- * GET /api/v1/task/{task_id}
- * Polls every 2 s, stops automatically on COMPLETED or FAILED.
- */
+/**GET /api/v1/task/{task_id}* Polls every 2 s*/
 export function useTaskStatus(taskId: string | null) {
   return useQuery({
     queryKey: queryKeys.uploads.task(taskId ?? ""),
@@ -77,13 +73,12 @@ export function useTaskStatus(taskId: string | null) {
   });
 }
 
-// ── Baselines ─────────────────────────────────────────────────────────────────
-
 /** GET /api/v1/baseline */
 export function useBaselines() {
   return useQuery({
     queryKey: queryKeys.uploads.baselines(),
     queryFn: uploadsApi.getBaselines,
+    placeholderData: [] as Baseline[],
     staleTime: 5 * 60_000,
   });
 }
@@ -93,6 +88,7 @@ export function useBaselineHistory() {
   return useQuery({
     queryKey: queryKeys.uploads.baselineHistory(),
     queryFn: uploadsApi.getBaselineHistory,
+    placeholderData: [] as unknown[],
     staleTime: 5 * 60_000,
   });
 }
@@ -102,12 +98,13 @@ export function useMachineBaselineHistory(machineId: string) {
   return useQuery({
     queryKey: queryKeys.uploads.machineBaselineHistory(machineId),
     queryFn: () => uploadsApi.getMachineBaselineHistory(machineId),
+    placeholderData: [] as unknown[],
     enabled: Boolean(machineId),
     staleTime: 5 * 60_000,
   });
 }
 
-/** PUT /api/v1/baseline/{machine_id} — manual JSON override */
+/** PUT /api/v1/baseline/{machine_id} */
 export function useUpdateBaselineManual() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -134,8 +131,6 @@ export function useDeleteBaseline() {
     },
   });
 }
-
-// ── Mill summary ──────────────────────────────────────────────────────────────
 
 /** GET /api/v1/mill/{mill_id}/summary */
 export function useMillSummary(params: MillSummaryParams) {

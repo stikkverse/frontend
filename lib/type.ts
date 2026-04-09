@@ -62,15 +62,10 @@ export type BearingRisk = "HIGH" | "WARNING" | "NORMAL";
 export type MachineStatus = "RUNNING" | "IDLE";
 
 export interface DashboardSummary {
-  mill_id: string;
-  mill_name: string;
-  date: string;
-  total_excess_co2_kg: number;
-  avoidable_cost_usd: number;
-  machines_total: number;
-  machines_running: number;
-  machines_idle: number;
-  last_updated: string;
+  total_energy_kwh: number;
+  total_co2_kg: number;
+  machine_count: number;
+  active_alerts_count: number;
 }
 
 export interface DashboardMachine {
@@ -123,13 +118,9 @@ export interface Alert {
 export type ProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 export interface UploadHistoryItem {
-  id: number;
   filename: string;
-  uploaded_at: string;
-  records_processed: number;
-  total_records: number;
+  timestamp: string;
   status: ProcessingStatus;
-  uploaded_by: string;
 }
 
 export interface UploadResponse {

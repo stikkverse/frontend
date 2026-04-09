@@ -35,7 +35,6 @@ export default function ApiPage() {
   const { data: baselines = [], isLoading: baselinesLoading } = useBaselines();
   const { data: currentUser } = useCurrentUser();
 
-  // API key is stored in localStorage at login time from the Token response
   const apiKey =
     typeof window !== "undefined"
       ? (localStorage.getItem("api_key") ?? "")
@@ -43,7 +42,7 @@ export default function ApiPage() {
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const recentUploads = uploads.filter(
-    (u) => new Date(u.uploaded_at) >= sevenDaysAgo,
+    (u) => new Date(u.timestamp) >= sevenDaysAgo,
   );
 
   return (
@@ -69,7 +68,11 @@ export default function ApiPage() {
           <ApiKeyPanel
             apiKey={apiKey}
             uploadCount={recentUploads.length}
-            lastUpload={uploads[0]?.uploaded_at.split("T")[0] ?? "—"}
+            lastUpload={
+              uploads[0]?.timestamp
+                ? uploads[0].timestamp.split("T")[0]
+                : "—"
+            }
           />
         </div>
         <div className="lg:w-[47%] md:w-[47%] w-full">
@@ -100,29 +103,27 @@ export default function ApiPage() {
           >
             <thead>
               <tr style={{ background: "var(--bg-alt)" }}>
-                {["FILENAME", "UPLOADED", "RECORDS", "STATUS", "BY"].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="font-mono text-[10px] tracking-[0.12em] px-4 py-3"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
+                {["FILENAME", "UPLOADED", "STATUS"].map((h) => (
+                  <th
+                    key={h}
+                    className="font-mono text-[10px] tracking-[0.12em] px-4 py-3"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {uploadsLoading
                 ? Array.from({ length: 4 }).map((_, i) => (
-                    <TableRowSkeleton key={i} cols={5} />
+                    <TableRowSkeleton key={i} cols={3} />
                   ))
-                : uploads.map((u) => {
+                : uploads.map((u, i) => {
                     const s = statusStyle(u.status);
                     return (
                       <tr
-                        key={u.id}
+                        key={`${u.filename}-${i}`}
                         className="transition-colors duration-150"
                         style={{ borderTop: "1px solid var(--border)" }}
                         onMouseEnter={(e) =>
@@ -143,21 +144,12 @@ export default function ApiPage() {
                           className="font-mono text-[11px] px-4 py-3"
                           style={{ color: "var(--text-secondary)" }}
                         >
-                          {new Date(u.uploaded_at).toLocaleString("en-US", {
+                          {new Date(u.timestamp).toLocaleString("en-US", {
                             month: "short",
                             day: "numeric",
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
-                        </td>
-                        <td
-                          className="font-mono text-[12px] px-4 py-3"
-                          style={{ color: "var(--text)" }}
-                        >
-                          {u.records_processed.toLocaleString()}{" "}
-                          <span style={{ color: "var(--text-muted)" }}>
-                            / {u.total_records.toLocaleString()}
-                          </span>
                         </td>
                         <td className="px-4 py-3">
                           <span
@@ -170,12 +162,6 @@ export default function ApiPage() {
                           >
                             {u.status}
                           </span>
-                        </td>
-                        <td
-                          className="font-mono text-[11px] px-4 py-3"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          {u.uploaded_by}
                         </td>
                       </tr>
                     );
