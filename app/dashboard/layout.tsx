@@ -13,7 +13,7 @@ export default function DashboardLayout({
 }) {
   const [loaded, setLoaded] = useState(false);
 
-  // Live alert count from the API — falls back to 0 while loading
+
   const unacknowledgedAlerts = useUnacknowledgedCount();
 
   useEffect(() => {
