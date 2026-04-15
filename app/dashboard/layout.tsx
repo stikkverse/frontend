@@ -5,6 +5,7 @@ import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import { useUnacknowledgedCount } from "@/hooks/useAlerts";
+import BackgroundGrid from "@/components/shared/BackgroundGrid";
 
 export default function DashboardLayout({
   children,
@@ -12,7 +13,6 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [loaded, setLoaded] = useState(false);
-
 
   const unacknowledgedAlerts = useUnacknowledgedCount();
 
@@ -22,14 +22,10 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div
-      className="relative min-h-screen overflow-hidden transition-[background,color] duration-300"
-      style={{ background: "var(--bg)", color: "var(--text)" }}
-    >
-      <div className="fixed inset-0 pointer-events-none z-0 gridBg" />
-      <div className="fixed left-0 right-0 h-0.75 pointer-events-none z-1 animateLine" />
+    <div className="min-h-screen flex flex-col">
+      <BackgroundGrid />
 
-      <div className="relative z-2 px-5 pt-7 pb-12 w-[90%] mx-auto min-h-screen flex flex-col">
+      <div className="relative z-2 px-5 pt-7 pb-12 w-[90%] mx-auto flex flex-col">
         <div
           className="transition-all duration-700"
           style={{
@@ -43,7 +39,7 @@ export default function DashboardLayout({
         </div>
 
         <div
-          className="flex-1 mt-8 transition-all duration-500"
+          className="flex-1 mt-8 transition-all duration-500 bg-(--bg)"
           style={{
             opacity: loaded ? 1 : 0,
             transform: loaded ? "translateY(0)" : "translateY(10px)",
@@ -53,10 +49,9 @@ export default function DashboardLayout({
         >
           {children}
         </div>
-
-        <div className="mt-auto pt-12">
-          <Footer />
-        </div>
+      </div>
+      <div className="mt-auto relative z-2">
+        <Footer />
       </div>
     </div>
   );
