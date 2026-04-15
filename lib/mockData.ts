@@ -29,15 +29,10 @@ export const MOCK_CURRENT_USER: CurrentUser = {
 // GET /api/v1/dashboard/summary
 // ═══════════════════════════════════════════
 export const MOCK_DASHBOARD_SUMMARY: DashboardSummary = {
-  mill_id: "B",
-  mill_name: "Sapele Processing Mill",
-  date: "2026-02-11",
-  total_excess_co2_kg: 76.26,
-  avoidable_cost_usd: 47.66,
-  machines_total: 6,
-  machines_running: 5,
-  machines_idle: 1,
-  last_updated: "2026-02-11T08:00:00Z",
+  total_energy_kwh: 6,
+  total_co2_kg: 5,
+  machine_count: 2,
+  active_alerts_count: 3
 };
 
 // ═══════════════════════════════════════════
@@ -149,15 +144,15 @@ export const MOCK_ALERTS: Alert[] = [
 // ═══════════════════════════════════════════
 // GET /api/v1/data/history
 // ═══════════════════════════════════════════
-export const MOCK_UPLOAD_HISTORY: UploadHistoryItem[] = [
-  { id: 7, filename: "operational_feb11.csv", uploaded_at: "2026-02-11T07:00:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
-  { id: 6, filename: "operational_feb10.csv", uploaded_at: "2026-02-10T07:05:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
-  { id: 5, filename: "operational_feb09.csv", uploaded_at: "2026-02-09T07:02:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
-  { id: 4, filename: "operational_feb08.csv", uploaded_at: "2026-02-08T07:10:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
-  { id: 3, filename: "operational_feb07.csv", uploaded_at: "2026-02-07T07:00:00Z", records_processed: 1438, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
-  { id: 2, filename: "operational_feb06.csv", uploaded_at: "2026-02-06T07:15:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
-  { id: 1, filename: "operational_feb05.csv", uploaded_at: "2026-02-05T07:00:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
-];
+// export const MOCK_UPLOAD_HISTORY: UploadHistoryItem[] = [
+//   { id: 7, filename: "operational_feb11.csv", uploaded_at: "2026-02-11T07:00:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
+//   { id: 6, filename: "operational_feb10.csv", uploaded_at: "2026-02-10T07:05:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
+//   { id: 5, filename: "operational_feb09.csv", uploaded_at: "2026-02-09T07:02:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
+//   { id: 4, filename: "operational_feb08.csv", uploaded_at: "2026-02-08T07:10:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
+//   { id: 3, filename: "operational_feb07.csv", uploaded_at: "2026-02-07T07:00:00Z", records_processed: 1438, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
+//   { id: 2, filename: "operational_feb06.csv", uploaded_at: "2026-02-06T07:15:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
+//   { id: 1, filename: "operational_feb05.csv", uploaded_at: "2026-02-05T07:00:00Z", records_processed: 1440, total_records: 1440, status: "COMPLETED",   uploaded_by: "operator@millb.com" },
+// ];
 
 // ═══════════════════════════════════════════
 // GET /api/v1/baseline

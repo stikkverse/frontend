@@ -56,8 +56,6 @@ export interface InvitationResponse {
   created_at: string;
 }
 
-// Dashboard
-
 export type BearingRisk = "HIGH" | "WARNING" | "NORMAL";
 export type MachineStatus = "RUNNING" | "IDLE";
 
