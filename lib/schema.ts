@@ -77,5 +77,6 @@ export const inviteSchema = z.object({
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
+export type VerifySignupFormValues = z.infer<typeof verifySignupSchema>;
 export type SignupFormValues = z.infer<typeof signupSchema>;
 export type InviteFormValues = z.infer<typeof inviteSchema>;

@@ -7,7 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { signupSchema, type SignupFormValues } from "@/lib/schema";
+import { verifySignupSchema, type VerifySignupFormValues } from "@/lib/schema";
 import { useAuth } from "@/lib/authContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,11 +71,11 @@ export default function SignupForm() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
-  const { signup } = useAuth();
+  const { verifysignup } = useAuth();
   const router = useRouter();
 
-  const form = useForm<SignupFormValues>({
-    resolver: zodResolver(signupSchema),
+  const form = useForm<VerifySignupFormValues>({
+    resolver: zodResolver(verifySignupSchema),
     defaultValues: {
       full_name: "",
       email: "",
@@ -89,14 +89,14 @@ export default function SignupForm() {
   const { isSubmitting } = form.formState;
   const password = form.watch("password");
 
-  const onSubmit = async (values: SignupFormValues) => {
+  const onSubmit = async (values: VerifySignupFormValues) => {
     try {
-      await signup({
-        email: values.email,
-        password: values.password,
+      await verifysignup({
         full_name: values.full_name,
+        email: values.email,
         mill_name: values.mill_name,
         mill_tag: values.mill_tag,
+        password: values.password,
       });
       setSuccess(true);
       toast.success("Account created — check your email for verification");
