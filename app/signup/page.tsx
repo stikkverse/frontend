@@ -1,5 +1,6 @@
 import NavBar from "@/components/auth/NavBar";
 import SignupForm from "@/components/auth/SignupForm";
+import { Suspense } from "react";
 
 export default function LoginPage() {
   return (
@@ -17,7 +18,9 @@ export default function LoginPage() {
           </p>
         </div>
         <div className="lg:w-[40%] md:w-[40%] w-full">
+          <Suspense>
           <SignupForm />
+          </Suspense>
         </div>
       </section>
     </main>
