@@ -57,12 +57,21 @@ export default function AuthProvider({
     router.push("/dashboard");
   };
 
-  const signup = async (payload: {
+  const verifysignup = async (payload: {
     email: string;
     password: string;
     full_name: string;
     mill_name: string;
     mill_tag: string;
+  }) => {
+    await axiosInstance.post("/api/v1/auth/register", payload);
+  };
+
+  const signup = async (payload: {
+    email: string;
+    password: string;
+    mill_id: string;
+    role: "OWNER" | "MANAGER" | "MEMBER";
   }) => {
     await axiosInstance.post("/api/v1/auth/register", payload);
   };
@@ -87,6 +96,7 @@ export default function AuthProvider({
         isAuthenticated: !!user,
         isLoading,
         login,
+        verifysignup,
         signup,
         logout,
       }}

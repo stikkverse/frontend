@@ -84,8 +84,6 @@ export default function ApiPage() {
           </div>
         </div>
       </div>
-
-      {/* Upload History */}
       <div>
         <h3
           className="font-sans text-base font-semibold mb-3"
@@ -171,7 +169,6 @@ export default function ApiPage() {
         </div>
       </div>
 
-      {/* Baselines */}
       <div>
         <h3
           className="font-sans text-base font-semibold mb-3"

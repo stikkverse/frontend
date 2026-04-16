@@ -8,13 +8,19 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  signup: (data: {
+  verifysignup: (data: {
     email: string;
     password: string;
     full_name: string;
     mill_name: string;
     mill_tag: string;
   }) => Promise<void>;
+  signup: (data: {
+  email: string;
+  password: string;
+  mill_id: string;
+  role: "OWNER" | "MANAGER" | "MEMBER";
+}) => Promise<void>;
   logout: () => Promise<void>;
 }
 

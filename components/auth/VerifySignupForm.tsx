@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { signupSchema, type SignupFormValues } from "@/lib/schema";
 import { useAuth } from "@/lib/authContext";
@@ -29,6 +29,7 @@ function PasswordStrength({ password }: { password: string }) {
   ].filter(Boolean).length;
 
   const label = ["", "WEAK", "FAIR", "GOOD", "STRONG"][score];
+
   const colorClass = [
     "",
     "text-(--red)",
@@ -36,6 +37,7 @@ function PasswordStrength({ password }: { password: string }) {
     "text-(--amber)",
     "text-(--green)",
   ][score];
+
   const barBg = [
     "",
     "bg-(--red)",
@@ -51,7 +53,7 @@ function PasswordStrength({ password }: { password: string }) {
           <div
             key={i}
             className={`h-0.75 flex-1 rounded-full transition-all duration-300 ${
-              i <= score ? barBg : "bg-border"
+              i <= score ? barBg : "bg-(--border)"
             }`}
           />
         ))}
@@ -67,40 +69,22 @@ function PasswordStrength({ password }: { password: string }) {
 
 export default function SignupForm() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
   const { signup } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const invitedEmail = searchParams.get("email") ?? "";
-  const invitedMillId = searchParams.get("mill_id") ?? "";
-  const invitedRole = searchParams.get("role") ?? "";
-  const hasInvite = Boolean(invitedEmail && invitedMillId && invitedRole);
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      email: invitedEmail,
-      mill_id: invitedMillId,
-      role: (invitedRole as "OWNER" | "MANAGER" | "MEMBER") || "MEMBER",
+      full_name: "",
+      email: "",
+      mill_name: "",
+      mill_tag: "",
       password: "",
       confirmPassword: "",
     },
   });
-
-  useEffect(() => {
-    if (hasInvite) {
-      form.reset({
-        email: invitedEmail,
-        mill_id: invitedMillId,
-        role: invitedRole as "OWNER" | "MANAGER" | "MEMBER",
-        password: "",
-        confirmPassword: "",
-      });
-    }
-  }, [hasInvite, invitedEmail, invitedMillId, invitedRole, form]);
 
   const { isSubmitting } = form.formState;
   const password = form.watch("password");
@@ -110,20 +94,17 @@ export default function SignupForm() {
       await signup({
         email: values.email,
         password: values.password,
-        mill_id: values.mill_id,
-        role: values.role,
+        full_name: values.full_name,
+        mill_name: values.mill_name,
+        mill_tag: values.mill_tag,
       });
       setSuccess(true);
       toast.success("Account created — check your email for verification");
     } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { detail?: string | Array<{ msg: string }> } };
-      };
-      const detail = err.response?.data?.detail;
-      const message = Array.isArray(detail)
-        ? detail.map((d) => d.msg).join(", ")
-        : (detail ?? "Registration failed. Please try again.");
-      toast.error(message);
+      const err = error as { response?: { data?: { detail?: string } } };
+      toast.error(
+        err.response?.data?.detail ?? "Registration failed. Please try again.",
+      );
     }
   };
 
@@ -159,44 +140,30 @@ export default function SignupForm() {
 
       <div className="mb-7">
         <h2 className="font-sans text-[26px] font-bold text-(--text)">
-          {hasInvite ? "Accept invitation" : "Create account"}
+          Create account
         </h2>
         <p className="font-sans text-[13px] mt-1 text-(--text-secondary)">
-          {hasInvite
-            ? `You've been invited to join Mill ${invitedMillId}. Set your password to continue.`
-            : "Complete your account details to access FactorySense"}
+          Set up your company profile on FactorySense
         </p>
       </div>
-
-      {hasInvite && (
-        <div className="mb-5 px-3 py-2.5 rounded-lg border border-(--cyan) bg-(--cyan-bg) flex items-center gap-2">
-          <Lock size={12} className="text-(--cyan) shrink-0" />
-          <p className="font-mono text-[10px] tracking-[0.06em] text-(--cyan)">
-            INVITE-BASED REGISTRATION
-          </p>
-        </div>
-      )}
 
       <form id="signup-form" onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup className="flex flex-col gap-5">
           <Controller
-            name="email"
+            name="full_name"
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel className="font-mono text-[10px] tracking-[0.14em] text-(--text-muted)">
-                  EMAIL
+                  FULL NAME
                 </FieldLabel>
                 <Input
                   {...field}
-                  type="email"
-                  placeholder="you@company.com"
-                  autoComplete="email"
-                  readOnly={hasInvite}
+                  type="text"
+                  placeholder="Amara Okonkwo"
+                  autoComplete="name"
                   aria-invalid={fieldState.invalid}
-                  className={`bg-(--bg-alt) border-border text-(--text) font-mono text-[13px] rounded-[10px] focus-visible:ring-(--cyan) focus-visible:border-(--cyan) py-5 ${
-                    hasInvite ? "opacity-70 cursor-not-allowed" : ""
-                  }`}
+                  className="bg-(--bg-alt) border-border text-(--text) font-mono text-[13px] rounded-[10px] focus-visible:ring-(--cyan) focus-visible:border-(--cyan) py-5"
                 />
                 {fieldState.invalid && (
                   <FieldError
@@ -207,25 +174,49 @@ export default function SignupForm() {
               </Field>
             )}
           />
-          <div className="flex gap-3 items-center">
+
+          <Controller
+            name="email"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel className="font-mono text-[10px] tracking-[0.14em] text-(--text-muted)">
+                  COMPANY EMAIL
+                </FieldLabel>
+                <Input
+                  {...field}
+                  type="email"
+                  placeholder="you@company.com"
+                  autoComplete="email"
+                  aria-invalid={fieldState.invalid}
+                  className="bg-(--bg-alt) border-border text-(--text) font-mono text-[13px] rounded-[10px] focus-visible:ring-(--cyan) focus-visible:border-(--cyan) py-5"
+                />
+                {fieldState.invalid && (
+                  <FieldError
+                    errors={[fieldState.error]}
+                    className="font-mono text-[10px] tracking-[0.06em] text-(--red)"
+                  />
+                )}
+              </Field>
+            )}
+          />
+
+          <div className="flex gap-3">
             <div className="flex-1">
               <Controller
-                name="mill_id"
+                name="mill_name"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel className="font-mono text-[10px] tracking-[0.14em] text-(--text-muted)">
-                      MILL ID
+                      MILL NAME
                     </FieldLabel>
                     <Input
                       {...field}
                       type="text"
-                      placeholder="B"
-                      readOnly={hasInvite}
+                      placeholder="Sapele Processing Mill"
                       aria-invalid={fieldState.invalid}
-                      className={`bg-(--bg-alt) border-border text-(--text) font-mono text-[13px] rounded-[10px] focus-visible:ring-(--cyan) focus-visible:border-(--cyan) py-5 uppercase ${
-                        hasInvite ? "opacity-70 cursor-not-allowed" : ""
-                      }`}
+                      className="bg-(--bg-alt) border-border text-(--text) font-mono text-[13px] rounded-[10px] focus-visible:ring-(--cyan) focus-visible:border-(--cyan) py-5"
                     />
                     {fieldState.invalid && (
                       <FieldError
@@ -237,26 +228,23 @@ export default function SignupForm() {
                 )}
               />
             </div>
-            <div className="w-36 shrink-0">
+            <div className="w-30 shrink-0">
               <Controller
-                name="role"
+                name="mill_tag"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel className="font-mono text-[10px] tracking-[0.14em] text-(--text-muted)">
-                      ROLE
+                      MILL TAG
                     </FieldLabel>
-                    <select
+                    <Input
                       {...field}
-                      disabled={hasInvite}
-                      className={`w-full h-13 px-3 rounded-[10px] border border-border bg-(--bg-alt) text-(--text) font-mono text-[13px] outline-none focus:ring-1 focus:ring-(--cyan) focus:border-(--cyan) cursor-pointer ${
-                        hasInvite ? "opacity-70 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      <option value="MEMBER">MEMBER</option>
-                      <option value="MANAGER">MANAGER</option>
-                      <option value="OWNER">OWNER</option>
-                    </select>
+                      type="text"
+                      placeholder="B"
+                      maxLength={10}
+                      aria-invalid={fieldState.invalid}
+                      className="bg-(--bg-alt) border-border text-(--text) font-mono text-[13px] rounded-[10px] focus-visible:ring-(--cyan) focus-visible:border-(--cyan) py-5 uppercase"
+                    />
                     {fieldState.invalid && (
                       <FieldError
                         errors={[fieldState.error]}
@@ -268,6 +256,7 @@ export default function SignupForm() {
               />
             </div>
           </div>
+
           <Controller
             name="password"
             control={form.control}
@@ -310,6 +299,7 @@ export default function SignupForm() {
               </Field>
             )}
           />
+
           <Controller
             name="confirmPassword"
             control={form.control}
@@ -358,13 +348,7 @@ export default function SignupForm() {
             disabled={isSubmitting}
             className="w-full rounded-[10px] font-mono text-[12px] font-semibold tracking-widest border border-(--cyan) bg-[linear-gradient(135deg,var(--cyan),#818cf8)] text-white shadow-[0_0_24px_var(--cyan-glow)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 py-5"
           >
-            {isSubmitting
-              ? hasInvite
-                ? "ACCEPTING INVITE..."
-                : "CREATING ACCOUNT..."
-              : hasInvite
-                ? "ACCEPT INVITATION"
-                : "CREATE ACCOUNT"}
+            {isSubmitting ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
           </Button>
 
           <p className="font-sans text-[12px] text-center leading-relaxed text-(--text-muted)">
