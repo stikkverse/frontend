@@ -9,8 +9,11 @@ import {
 } from "@/hooks/useUploads";
 import type { ProcessingStatus } from "@/lib/type";
 
-
 type UploadMode = "operational" | "baseline-initial" | "baseline-update";
+
+interface UploadZoneProps {
+  onComplete?: () => void;
+}
 
 const MODE_CONFIG: Record<
   UploadMode,
@@ -34,26 +37,64 @@ const MODE_CONFIG: Record<
 };
 
 function StatusBadge({ status }: { status: ProcessingStatus | "IDLE" }) {
-  const map: Record<string, { label: string; color: string; bg: string; border: string }> = {
-    COMPLETED: { label: "COMPLETED", color: "var(--green)", bg: "var(--green-bg)", border: "var(--green)" },
-    PROCESSING: { label: "PROCESSING", color: "var(--cyan)", bg: "var(--cyan-bg)", border: "var(--cyan)" },
-    PENDING: { label: "QUEUED", color: "var(--amber)", bg: "var(--amber-bg)", border: "var(--amber)" },
-    FAILED: { label: "FAILED", color: "var(--red)", bg: "var(--red-bg)", border: "var(--red)" },
-    IDLE: { label: "READY", color: "var(--text-muted)", bg: "var(--bg-alt)", border: "var(--border)" },
+  const map: Record<
+    string,
+    { label: string; color: string; bg: string; border: string }
+  > = {
+    COMPLETED: {
+      label: "COMPLETED",
+      color: "var(--green)",
+      bg: "var(--green-bg)",
+      border: "var(--green)",
+    },
+    PROCESSING: {
+      label: "PROCESSING",
+      color: "var(--cyan)",
+      bg: "var(--cyan-bg)",
+      border: "var(--cyan)",
+    },
+    PENDING: {
+      label: "QUEUED",
+      color: "var(--amber)",
+      bg: "var(--amber-bg)",
+      border: "var(--amber)",
+    },
+    FAILED: {
+      label: "FAILED",
+      color: "var(--red)",
+      bg: "var(--red-bg)",
+      border: "var(--red)",
+    },
+    IDLE: {
+      label: "READY",
+      color: "var(--text-muted)",
+      bg: "var(--bg-alt)",
+      border: "var(--border)",
+    },
   };
 
   const s = map[status];
   return (
     <span
       className="font-mono text-[9px] font-semibold tracking-[0.06em] px-2 py-0.5 rounded-full"
-      style={{ color: s.color, background: s.bg, border: `1px solid ${s.border}` }}
+      style={{
+        color: s.color,
+        background: s.bg,
+        border: `1px solid ${s.border}`,
+      }}
     >
       {s.label}
     </span>
   );
 }
 
-function ProgressBar({ progress, status }: { progress: number; status: ProcessingStatus | "IDLE" }) {
+function ProgressBar({
+  progress,
+  status,
+}: {
+  progress: number;
+  status: ProcessingStatus | "IDLE";
+}) {
   const color =
     status === "COMPLETED"
       ? "var(--green)"
@@ -61,7 +102,10 @@ function ProgressBar({ progress, status }: { progress: number; status: Processin
         ? "var(--red)"
         : "var(--cyan)";
   return (
-    <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
+    <div
+      className="w-full h-1.5 rounded-full overflow-hidden"
+      style={{ background: "var(--border)" }}
+    >
       <div
         className="h-full rounded-full transition-all duration-300"
         style={{ width: `${progress}%`, background: color }}
@@ -70,7 +114,7 @@ function ProgressBar({ progress, status }: { progress: number; status: Processin
   );
 }
 
-export default function UploadZone() {
+export default function UploadZone({ onComplete }: UploadZoneProps) {
   const [mode, setMode] = useState<UploadMode>("operational");
   const [dragOver, setDragOver] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -96,9 +140,11 @@ export default function UploadZone() {
         : uploadBaselineUpdate;
 
   const isProcessing = activeMutation.isPending;
-  const isDone = taskStatus?.status === "COMPLETED" || taskStatus?.status === "FAILED";
+  const isDone =
+    taskStatus?.status === "COMPLETED" || taskStatus?.status === "FAILED";
 
-  const currentStatus: ProcessingStatus | "IDLE" = taskStatus?.status ?? (isProcessing ? "PENDING" : "IDLE");
+  const currentStatus: ProcessingStatus | "IDLE" =
+    taskStatus?.status ?? (isProcessing ? "PENDING" : "IDLE");
   const progress =
     currentStatus === "COMPLETED"
       ? 100
@@ -108,7 +154,8 @@ export default function UploadZone() {
           ? uploadProgress
           : 0;
 
-  const message = taskStatus?.message ?? (isProcessing ? "Uploading file…" : null);
+  const message =
+    taskStatus?.message ?? (isProcessing ? "Uploading file…" : null);
   const config = MODE_CONFIG[mode];
 
   const handleFile = useCallback((f: File) => {
@@ -143,12 +190,17 @@ export default function UploadZone() {
     const onProgress = (pct: number) => setUploadProgress(pct);
     const opts = { file, onProgress };
 
-    const onSuccess = (data: { task_id: string; message: string; estimated_initial_seconds: number }) => {
+    const onSuccess = (data: {
+      task_id: string;
+      message: string;
+      estimated_initial_seconds: number;
+    }) => {
       if (data.task_id) setTaskId(data.task_id);
     };
 
     if (mode === "operational") uploadOperational.mutate(opts, { onSuccess });
-    else if (mode === "baseline-initial") uploadBaselineInitial.mutate(opts, { onSuccess });
+    else if (mode === "baseline-initial")
+      uploadBaselineInitial.mutate(opts, { onSuccess });
     else uploadBaselineUpdate.mutate(opts, { onSuccess });
   };
 
@@ -166,9 +218,12 @@ export default function UploadZone() {
   return (
     <div
       className="rounded-[14px] border overflow-hidden"
-      style={{ borderColor: "var(--border)", background: "var(--surface)", boxShadow: "var(--card-shadow)" }}
+      style={{
+        borderColor: "var(--border)",
+        background: "var(--surface)",
+        boxShadow: "var(--card-shadow)",
+      }}
     >
-      {/* Mode tabs */}
       <div
         className="flex gap-1 p-1.5 border-b"
         style={{ borderColor: "var(--border)", background: "var(--bg-alt)" }}
@@ -176,7 +231,12 @@ export default function UploadZone() {
         {(Object.keys(MODE_CONFIG) as UploadMode[]).map((m) => (
           <button
             key={m}
-            onClick={() => { if (!isProcessing) { setMode(m); reset(); } }}
+            onClick={() => {
+              if (!isProcessing) {
+                setMode(m);
+                reset();
+              }
+            }}
             disabled={isProcessing}
             className="font-mono text-[10px] tracking-[0.06em] px-3 py-1.5 rounded-md cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
@@ -191,36 +251,58 @@ export default function UploadZone() {
       </div>
 
       <div className="p-5">
-        <p className="font-sans text-[12px] mb-4" style={{ color: "var(--text-muted)" }}>
+        <p
+          className="font-sans text-[12px] mb-4"
+          style={{ color: "var(--text-muted)" }}
+        >
           {config.description}
           <span
             className="ml-2 font-mono text-[9px] px-1.5 py-0.5 rounded border"
-            style={{ background: "var(--bg-alt)", color: "var(--text-muted)", borderColor: "var(--border)" }}
+            style={{
+              background: "var(--bg-alt)",
+              color: "var(--text-muted)",
+              borderColor: "var(--border)",
+            }}
           >
             {config.endpoint}
           </span>
         </p>
 
         {fileError && (
-          <p className="font-mono text-[11px] mb-3" style={{ color: "var(--red)" }}>
+          <p
+            className="font-mono text-[11px] mb-3"
+            style={{ color: "var(--red)" }}
+          >
             ⚠ {fileError}
           </p>
         )}
 
         {activeMutation.isError && (
-          <p className="font-mono text-[11px] mb-3" style={{ color: "var(--red)" }}>
+          <p
+            className="font-mono text-[11px] mb-3"
+            style={{ color: "var(--red)" }}
+          >
             ⚠ Upload failed. Please try again.
           </p>
         )}
 
         <div
-          onDragOver={(e) => { e.preventDefault(); if (!isProcessing) setDragOver(true); }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (!isProcessing) setDragOver(true);
+          }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
-          onClick={() => { if (!isProcessing && !file) inputRef.current?.click(); }}
+          onClick={() => {
+            if (!isProcessing && !file) inputRef.current?.click();
+          }}
           className="relative rounded-xl border-2 border-dashed transition-all duration-200 text-center cursor-pointer"
           style={{
-            borderColor: dragOver ? "var(--cyan)" : file ? "var(--border)" : "var(--border)",
+            borderColor: dragOver
+              ? "var(--cyan)"
+              : file
+                ? "var(--border)"
+                : "var(--border)",
             background: dragOver ? "var(--cyan-bg)" : "var(--bg-alt)",
             padding: file ? "20px" : "36px 20px",
           }}
@@ -237,14 +319,25 @@ export default function UploadZone() {
             <>
               <div
                 className="w-10 h-10 rounded-full mx-auto mb-3 flex items-center justify-center border-[1.5px]"
-                style={{ background: "var(--cyan-bg)", borderColor: "var(--cyan)" }}
+                style={{
+                  background: "var(--cyan-bg)",
+                  borderColor: "var(--cyan)",
+                }}
               >
-                <span className="text-lg" style={{ color: "var(--cyan)" }}>↑</span>
+                <span className="text-lg" style={{ color: "var(--cyan)" }}>
+                  ↑
+                </span>
               </div>
-              <p className="font-sans text-[13px] font-medium mb-1" style={{ color: "var(--text)" }}>
+              <p
+                className="font-sans text-[13px] font-medium mb-1"
+                style={{ color: "var(--text)" }}
+              >
                 Drop your CSV file here
               </p>
-              <p className="font-mono text-[10px]" style={{ color: "var(--text-muted)" }}>
+              <p
+                className="font-mono text-[10px]"
+                style={{ color: "var(--text-muted)" }}
+              >
                 or click to browse — .csv files only
               </p>
             </>
@@ -256,15 +349,25 @@ export default function UploadZone() {
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-mono text-[10px] font-bold border"
-                    style={{ background: "var(--cyan-bg)", color: "var(--cyan)", borderColor: "var(--cyan)" }}
+                    style={{
+                      background: "var(--cyan-bg)",
+                      color: "var(--cyan)",
+                      borderColor: "var(--cyan)",
+                    }}
                   >
                     CSV
                   </div>
                   <div className="min-w-0">
-                    <p className="font-mono text-[12px] font-medium truncate" style={{ color: "var(--text)" }}>
+                    <p
+                      className="font-mono text-[12px] font-medium truncate"
+                      style={{ color: "var(--text)" }}
+                    >
                       {file.name}
                     </p>
-                    <p className="font-mono text-[10px]" style={{ color: "var(--text-muted)" }}>
+                    <p
+                      className="font-mono text-[10px]"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       {(file.size / 1024).toFixed(1)} KB
                     </p>
                   </div>
@@ -273,9 +376,16 @@ export default function UploadZone() {
                   <StatusBadge status={currentStatus} />
                   {!isProcessing && !taskId && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); reset(); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        reset();
+                      }}
                       className="font-mono text-[9px] px-2 py-1 rounded cursor-pointer transition-colors duration-150 border"
-                      style={{ color: "var(--text-muted)", background: "transparent", borderColor: "var(--border)" }}
+                      style={{
+                        color: "var(--text-muted)",
+                        background: "transparent",
+                        borderColor: "var(--border)",
+                      }}
                     >
                       ✕
                     </button>
@@ -287,9 +397,13 @@ export default function UploadZone() {
                 <div>
                   <ProgressBar progress={progress} status={currentStatus} />
                   <div className="flex justify-between mt-1.5">
-                    <p className="font-mono text-[10px]" style={{ color: "var(--text-muted)" }}>
+                    <p
+                      className="font-mono text-[10px]"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       {message}
-                      {taskStatus && ` — ${taskStatus.records_processed.toLocaleString()} / ${taskStatus.total_records.toLocaleString()} records`}
+                      {taskStatus &&
+                        ` — ${taskStatus.records_processed.toLocaleString()} / ${taskStatus.total_records.toLocaleString()} records`}
                     </p>
                     <p
                       className="font-mono text-[10px] font-semibold"
@@ -309,14 +423,20 @@ export default function UploadZone() {
               )}
 
               {taskId && (
-                <p className="font-mono text-[9px]" style={{ color: "var(--text-muted)" }}>
+                <p
+                  className="font-mono text-[9px]"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   Task: {taskId}
                 </p>
               )}
 
               {currentStatus === "IDLE" && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); handleUpload(); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUpload();
+                  }}
                   className="w-full py-2 rounded-lg font-mono text-[11px] font-semibold tracking-[0.08em] cursor-pointer transition-all duration-200 hover:opacity-90 border"
                   style={{
                     borderColor: "var(--cyan)",
@@ -331,7 +451,11 @@ export default function UploadZone() {
 
               {isDone && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); reset(); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onComplete) onComplete();
+                    reset();
+                  }}
                   className="w-full py-2 rounded-lg font-mono text-[11px] font-semibold tracking-[0.08em] cursor-pointer transition-all duration-200 border"
                   style={{
                     background: "var(--bg-alt)",

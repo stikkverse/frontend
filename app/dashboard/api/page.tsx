@@ -3,7 +3,7 @@
 import { useUploadHistory, useBaselines } from "@/hooks/useUploads";
 import { useCurrentUser } from "@/hooks/useTeam";
 import ApiKeyPanel from "@/components/dashboard/ApiKeyPanel";
-import UploadZone from "@/components/dashboard/UploadZone";
+import UploadInfoCard from "@/components/dashboard/UploadInfo";
 import type { ProcessingStatus } from "@/lib/type";
 
 function statusStyle(status: ProcessingStatus) {
@@ -80,7 +80,7 @@ export default function ApiPage() {
             Upload Data
           </h3>
           <div className="max-w-150">
-            <UploadZone />
+            <UploadInfoCard />
           </div>
         </div>
       </div>
