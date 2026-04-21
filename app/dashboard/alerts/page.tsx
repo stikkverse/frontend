@@ -56,7 +56,7 @@ function AlertCard({
                 </span>
               </div>
               <p className="font-mono text-[9px] tracking-widest mt-0.5" style={{ color: "var(--text-muted)" }}>
-                {alert.alert_type.replace(/_/g, " ")} — {formatRelativeTime(alert.created_at)}
+                {(alert.alert_type ?? "").replace(/_/g, " ")} — {alert.created_at ? formatRelativeTime(alert.created_at) : ""}
               </p>
             </div>
           </div>

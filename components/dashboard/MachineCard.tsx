@@ -14,10 +14,14 @@ interface MachineCardProps {
 
 export default function MachineCard({ machine, index }: MachineCardProps) {
   const [visible, setVisible] = useState<boolean>(false);
-  const isIdle   = machine.status === "IDLE";
-  const color    = getRiskColor(machine.bearing_risk);
-  const hColor   = getHealthColor(machine.health_score);
-  const co2Color = getCO2Color(machine.excess_co2_today_kg);
+
+  const isIdle    = machine.status === "IDLE";
+  const co2       = machine.excess_co2_today_kg ?? 0;
+  const health    = machine.health_score ?? 0;
+  const risk      = machine.bearing_risk ?? "NORMAL";
+  const color     = getRiskColor(risk);
+  const hColor    = getHealthColor(health);
+  const co2Color  = getCO2Color(co2);
 
   useEffect(() => {
     const tm = setTimeout(() => setVisible(true), 120 + index * 100);
@@ -37,7 +41,7 @@ export default function MachineCard({ machine, index }: MachineCardProps) {
         className="h-0.75"
         style={{
           background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
-          boxShadow: `0 1px 8px ${getRiskGlow(machine.bearing_risk)}`,
+          boxShadow: `0 1px 8px ${getRiskGlow(risk)}`,
         }}
       />
 
@@ -45,7 +49,7 @@ export default function MachineCard({ machine, index }: MachineCardProps) {
         <div className="flex justify-between items-start mb-4">
           <div>
             <p className="font-mono text-[20px] font-bold tracking-[0.04em] text-dash-text">
-              {machine.machine_id}
+              {machine.machine_id ?? "—"}
             </p>
             <div className="flex items-center gap-1.5 mt-1">
               <span
@@ -60,16 +64,15 @@ export default function MachineCard({ machine, index }: MachineCardProps) {
                 className="font-mono text-[10px] tracking-[0.1em]"
                 style={{ color: isIdle ? "var(--text-muted)" : "var(--green)" }}
               >
-                {machine.status}
+                {machine.status ?? "—"}
               </span>
             </div>
           </div>
-          <RiskBadge risk={machine.bearing_risk} />
+          <RiskBadge risk={risk} />
         </div>
 
-
         <div className="flex items-center gap-5">
-          <HealthRing score={machine.health_score} size={90} />
+          <HealthRing score={health} size={90} />
           <div className="flex-1 min-w-0">
             <p className="font-mono text-[9px] tracking-[0.14em] text-dash-text-muted mb-1">
               EXCESS CO₂ TODAY
@@ -79,7 +82,7 @@ export default function MachineCard({ machine, index }: MachineCardProps) {
                 className="font-mono text-[26px] font-bold leading-none"
                 style={{ color: co2Color }}
               >
-                {machine.excess_co2_today_kg.toFixed(1)}
+                {co2.toFixed(1)}
               </span>
               <span className="font-mono text-[11px] text-dash-text-muted">kg</span>
             </div>
@@ -89,8 +92,9 @@ export default function MachineCard({ machine, index }: MachineCardProps) {
           </div>
         </div>
       </div>
+
       <div className="mt-2">
-        <PulseLine color={hColor} risk={machine.bearing_risk} muted={isIdle} />
+        <PulseLine color={hColor} risk={risk} muted={isIdle} />
       </div>
     </div>
   );

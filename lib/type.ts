@@ -55,15 +55,20 @@ export interface InvitationResponse {
   is_accepted: boolean;
   created_at: string;
 }
-
+// Dashboard 
 export type BearingRisk = "HIGH" | "WARNING" | "NORMAL";
 export type MachineStatus = "RUNNING" | "IDLE";
 
 export interface DashboardSummary {
-  total_energy_kwh: number;
-  total_co2_kg: number;
-  machine_count: number;
-  active_alerts_count: number;
+  mill_id: string;
+  mill_name: string;
+  date: string;
+  total_excess_co2_kg: number;
+  avoidable_cost_usd: number;
+  machines_total: number;
+  machines_running: number;
+  machines_idle: number;
+  last_updated: string;
 }
 
 export interface DashboardMachine {
@@ -94,8 +99,6 @@ export interface MachineTrends {
   range: string;
   data_points: MachineTrendPoint[];
 }
-
-
 // Alerts
 export type AlertSeverity = "HIGH" | "WARNING" | "INFO";
 
@@ -111,14 +114,18 @@ export interface Alert {
   acknowledged_by: string | null;
 }
 
-
 // Data / Uploads
 export type ProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 
+
 export interface UploadHistoryItem {
+  id: number;
   filename: string;
-  timestamp: string;
+  uploaded_at: string;
+  records_processed: number;
+  total_records: number;
   status: ProcessingStatus;
+  uploaded_by: string;
 }
 
 export interface UploadResponse {
@@ -150,7 +157,6 @@ export interface BaselineUpdate {
   std_current: number;
   p95_current: number;
 }
-
 // Mill Summary
 export interface MillSummary {
   mill_id: string;
@@ -172,8 +178,7 @@ export interface MillSummaryParams {
   endDate?: string;
   machineId?: string;
 }
-
-// Admin
+// Admin 
 export interface UserCreate {
   email: string;
   password: string;
@@ -191,8 +196,7 @@ export interface StatsUpdate {
   bearing_risk: string;
   message: string;
 }
-
-// UI navigation
+// UI navigation — unchanged
 export interface TabItem {
   id: string;
   label: string;

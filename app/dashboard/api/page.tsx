@@ -1,16 +1,43 @@
 "use client";
 
-import { useUploadHistory, useBaselines } from "@/hooks/useUploads";
+import { useUploadHistory, useBaselines, useTaskStatus } from "@/hooks/useUploads";
 import { useCurrentUser } from "@/hooks/useTeam";
 import ApiKeyPanel from "@/components/dashboard/ApiKeyPanel";
-import UploadInfoCard from "@/components/dashboard/UploadInfo";
-import type { ProcessingStatus } from "@/lib/type";
+import UploadZone from "@/components/dashboard/UploadZone";
+import type { ProcessingStatus, UploadHistoryItem } from "@/lib/type";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
+import { queryKeys } from "@/lib/queryKeys";
+
+function formatDate(value: string | null | undefined): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatDateShort(value: string | null | undefined): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 function statusStyle(status: ProcessingStatus) {
   switch (status) {
     case "COMPLETED":
       return { color: "var(--green)", bg: "var(--green-bg)" };
     case "PROCESSING":
+      return { color: "var(--cyan)", bg: "var(--cyan-bg)" };
     case "PENDING":
       return { color: "var(--amber)", bg: "var(--amber-bg)" };
     case "FAILED":
@@ -30,10 +57,72 @@ function TableRowSkeleton({ cols }: { cols: number }) {
   );
 }
 
+function LiveStatusCell({
+  taskId,
+  storedStatus,
+}: {
+  taskId: string | null;
+  storedStatus: ProcessingStatus;
+}) {
+  const queryClient = useQueryClient();
+  const shouldPoll =
+    taskId !== null &&
+    (storedStatus === "PENDING" || storedStatus === "PROCESSING");
+
+  const { data: taskData } = useTaskStatus(shouldPoll ? taskId : null);
+  const liveStatus = taskData?.status ?? storedStatus;
+
+  
+  useEffect(() => {
+    if (taskData?.status === "COMPLETED") {
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.machines() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.uploads.history() });
+    }
+  }, [taskData?.status, queryClient]);
+
+  const s = statusStyle(liveStatus);
+  return (
+    <span
+      className="font-mono text-[9px] font-semibold tracking-[0.08em] px-2 py-0.5 rounded-full"
+      style={{ color: s.color, background: s.bg, border: `1px solid ${s.color}` }}
+    >
+      {liveStatus}
+      {(liveStatus === "PROCESSING" || liveStatus === "PENDING") && taskData?.progress
+        ? ` ${Math.round(taskData.progress)}%`
+        : ""}
+    </span>
+  );
+}
+
+function useTaskIdMap() {
+  const ref = useRef<Record<string, string>>({});
+
+  const setTaskId = (filename: string, taskId: string) => {
+    ref.current[filename] = taskId;
+    sessionStorage.setItem("task_id_map", JSON.stringify(ref.current));
+  };
+
+  const getTaskId = (filename: string): string | null => {
+    if (Object.keys(ref.current).length === 0) {
+      try {
+        const stored = sessionStorage.getItem("task_id_map");
+        if (stored) ref.current = JSON.parse(stored);
+      } catch {
+        // ignore
+      }
+    }
+    return ref.current[filename] ?? null;
+  };
+
+  return { setTaskId, getTaskId };
+}
+
 export default function ApiPage() {
   const { data: uploads = [], isLoading: uploadsLoading } = useUploadHistory();
   const { data: baselines = [], isLoading: baselinesLoading } = useBaselines();
   const { data: currentUser } = useCurrentUser();
+  const { getTaskId, setTaskId } = useTaskIdMap();
 
   const apiKey =
     typeof window !== "undefined"
@@ -41,25 +130,28 @@ export default function ApiPage() {
       : "";
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const recentUploads = uploads.filter(
-    (u) => new Date(u.timestamp) >= sevenDaysAgo,
-  );
+  const recentUploads = uploads.filter((u) => {
+    if (!u.uploaded_at) return false;
+    const d = new Date(u.uploaded_at);
+    return !isNaN(d.getTime()) && d >= sevenDaysAgo;
+  });
+
+  const lastUploadDate = uploads[0]?.uploaded_at
+    ? (() => {
+        const d = new Date(uploads[0].uploaded_at);
+        return isNaN(d.getTime()) ? "—" : uploads[0].uploaded_at.split("T")[0];
+      })()
+    : "—";
 
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2
-          className="font-sans text-[20px] font-bold m-0"
-          style={{ color: "var(--text)" }}
-        >
+        <h2 className="font-sans text-[20px] font-bold m-0" style={{ color: "var(--text)" }}>
           API Access &amp; Data Uploads
         </h2>
-        <p
-          className="font-sans text-[13px] mt-1"
-          style={{ color: "var(--text-secondary)" }}
-        >
+        <p className="font-sans text-[13px] mt-1" style={{ color: "var(--text-secondary)" }}>
           Manage your API key, review upload history, and monitor baselines
-          {currentUser ? ` for ${currentUser.mill_name}` : ""}
+          {currentUser ? ` for mill ${currentUser.mill_id}` : ""}
         </p>
       </div>
 
@@ -68,11 +160,7 @@ export default function ApiPage() {
           <ApiKeyPanel
             apiKey={apiKey}
             uploadCount={recentUploads.length}
-            lastUpload={
-              uploads[0]?.timestamp
-                ? uploads[0].timestamp.split("T")[0]
-                : "—"
-            }
+            lastUpload={lastUploadDate}
           />
         </div>
         <div className="lg:w-[47%] md:w-[47%] w-full">
@@ -80,25 +168,31 @@ export default function ApiPage() {
             Upload Data
           </h3>
           <div className="max-w-150">
-            <UploadInfoCard />
+            <UploadZone
+              onComplete={() => {
+                // Save task_id keyed by filename for history table polling
+                try {
+                  const taskId = sessionStorage.getItem("latest_task_id");
+                  const filename = sessionStorage.getItem("latest_filename");
+                  if (taskId && filename) {
+                    setTaskId(filename, taskId);
+                  }
+                } catch {
+                  // ignore
+                }
+              }}
+            />
           </div>
         </div>
       </div>
+
+      {/* Upload History */}
       <div>
-        <h3
-          className="font-sans text-base font-semibold mb-3"
-          style={{ color: "var(--text)" }}
-        >
+        <h3 className="font-sans text-base font-semibold mb-3" style={{ color: "var(--text)" }}>
           Upload History
         </h3>
-        <div
-          className="overflow-x-auto rounded-[12px] border"
-          style={{ borderColor: "var(--border)" }}
-        >
-          <table
-            className="w-full text-left"
-            style={{ borderCollapse: "collapse" }}
-          >
+        <div className="overflow-x-auto rounded-[12px] border" style={{ borderColor: "var(--border)" }}>
+          <table className="w-full text-left" style={{ borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--bg-alt)" }}>
                 {["FILENAME", "UPLOADED", "STATUS"].map((h) => (
@@ -117,16 +211,28 @@ export default function ApiPage() {
                 ? Array.from({ length: 4 }).map((_, i) => (
                     <TableRowSkeleton key={i} cols={3} />
                   ))
-                : uploads.map((u, i) => {
-                    const s = statusStyle(u.status);
+                : uploads.length === 0
+                  ? (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="px-4 py-8 text-center font-mono text-[12px]"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        No uploads yet
+                      </td>
+                    </tr>
+                  )
+                  : uploads.map((u: UploadHistoryItem, index: number) => {
+                    // Look up task_id for this file from session storage
+                    const taskId = getTaskId(u.filename);
                     return (
                       <tr
-                        key={`${u.filename}-${i}`}
+                        key={index}
                         className="transition-colors duration-150"
                         style={{ borderTop: "1px solid var(--border)" }}
                         onMouseEnter={(e) =>
-                          (e.currentTarget.style.background =
-                            "var(--surface-hover)")
+                          (e.currentTarget.style.background = "var(--surface-hover)")
                         }
                         onMouseLeave={(e) =>
                           (e.currentTarget.style.background = "transparent")
@@ -142,24 +248,13 @@ export default function ApiPage() {
                           className="font-mono text-[11px] px-4 py-3"
                           style={{ color: "var(--text-secondary)" }}
                         >
-                          {new Date(u.timestamp).toLocaleString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {formatDate(u.uploaded_at)}
                         </td>
                         <td className="px-4 py-3">
-                          <span
-                            className="font-mono text-[9px] font-semibold tracking-[0.08em] px-2 py-0.5 rounded-full"
-                            style={{
-                              color: s.color,
-                              background: s.bg,
-                              border: `1px solid ${s.color}`,
-                            }}
-                          >
-                            {u.status}
-                          </span>
+                          <LiveStatusCell
+                            taskId={taskId}
+                            storedStatus={u.status}
+                          />
                         </td>
                       </tr>
                     );
@@ -169,36 +264,19 @@ export default function ApiPage() {
         </div>
       </div>
 
+      {/* Baselines */}
       <div>
-        <h3
-          className="font-sans text-base font-semibold mb-3"
-          style={{ color: "var(--text)" }}
-        >
+        <h3 className="font-sans text-base font-semibold mb-3" style={{ color: "var(--text)" }}>
           Current Baselines
         </h3>
-        <p
-          className="font-sans text-[12px] mb-3"
-          style={{ color: "var(--text-muted)" }}
-        >
+        <p className="font-sans text-[12px] mb-3" style={{ color: "var(--text-muted)" }}>
           Baseline current readings used for anomaly detection and health scoring
         </p>
-        <div
-          className="overflow-x-auto rounded-[12px] border"
-          style={{ borderColor: "var(--border)" }}
-        >
-          <table
-            className="w-full text-left"
-            style={{ borderCollapse: "collapse" }}
-          >
+        <div className="overflow-x-auto rounded-[12px] border" style={{ borderColor: "var(--border)" }}>
+          <table className="w-full text-left" style={{ borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--bg-alt)" }}>
-                {[
-                  "MACHINE",
-                  "MEAN CURRENT (A)",
-                  "STD DEV (A)",
-                  "P95 CURRENT (A)",
-                  "LAST UPDATED",
-                ].map((h) => (
+                {["MACHINE", "MEAN CURRENT (A)", "STD DEV (A)", "P95 CURRENT (A)", "LAST UPDATED"].map((h) => (
                   <th
                     key={h}
                     className="font-mono text-[10px] tracking-[0.12em] px-4 py-3"
@@ -214,52 +292,44 @@ export default function ApiPage() {
                 ? Array.from({ length: 4 }).map((_, i) => (
                     <TableRowSkeleton key={i} cols={5} />
                   ))
-                : baselines.map((b) => (
+                : baselines.length === 0
+                  ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-4 py-8 text-center font-mono text-[12px]"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        No baselines established yet
+                      </td>
+                    </tr>
+                  )
+                  : baselines.map((b) => (
                     <tr
                       key={b.machine_id}
                       className="transition-colors duration-150"
                       style={{ borderTop: "1px solid var(--border)" }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.background =
-                          "var(--surface-hover)")
+                        (e.currentTarget.style.background = "var(--surface-hover)")
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.background = "transparent")
                       }
                     >
-                      <td
-                        className="font-mono text-[13px] font-semibold px-4 py-3"
-                        style={{ color: "var(--text)" }}
-                      >
+                      <td className="font-mono text-[13px] font-semibold px-4 py-3" style={{ color: "var(--text)" }}>
                         {b.machine_id}
                       </td>
-                      <td
-                        className="font-mono text-[12px] px-4 py-3"
-                        style={{ color: "var(--cyan)" }}
-                      >
+                      <td className="font-mono text-[12px] px-4 py-3" style={{ color: "var(--cyan)" }}>
                         {b.mean_current.toFixed(1)}
                       </td>
-                      <td
-                        className="font-mono text-[12px] px-4 py-3"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
+                      <td className="font-mono text-[12px] px-4 py-3" style={{ color: "var(--text-secondary)" }}>
                         ±{b.std_current.toFixed(1)}
                       </td>
-                      <td
-                        className="font-mono text-[12px] px-4 py-3"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
+                      <td className="font-mono text-[12px] px-4 py-3" style={{ color: "var(--text-secondary)" }}>
                         {b.p95_current.toFixed(1)}
                       </td>
-                      <td
-                        className="font-mono text-[11px] px-4 py-3"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        {new Date(b.updated_at).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                      <td className="font-mono text-[11px] px-4 py-3" style={{ color: "var(--text-muted)" }}>
+                        {formatDateShort(b.updated_at)}
                       </td>
                     </tr>
                   ))}

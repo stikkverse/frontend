@@ -6,7 +6,6 @@ import type {
   CurrentUser,
   DashboardMachine,
   DashboardSummary,
-  InvitationResponse,
   MachineSpec,
   MachineTrends,
   MillCreate,
@@ -20,8 +19,8 @@ import type {
   UploadHistoryItem,
   UploadResponse,
   UserCreate,
+  InvitationResponse,
 } from "./type";
-
 
 // Dashboard   — x-api-key secured
 export const dashboardApi = {
@@ -43,14 +42,14 @@ export const dashboardApi = {
   },
 
   /** GET /api/v1/dashboard/machine-specs */
- getMachineSpecs: async (): Promise<MachineSpec[]> => {
-  const { data } = await axiosInstance.get<Record<string, MachineSpec> | MachineSpec[]>(
-    "/api/v1/dashboard/machine-specs",
-  );
-  return Array.isArray(data) ? data : Object.values(data);
-},
+  getMachineSpecs: async (): Promise<MachineSpec[]> => {
+    const { data } = await axiosInstance.get<MachineSpec[]>(
+      "/api/v1/dashboard/machine-specs",
+    );
+    return data;
+  },
 
-  /** GET /api/v1/dashboard/machines/{machine_id}/trends */
+  /** GET /api/v1/dashboard/machines/{machine_id}/trends?range={range} */
   getMachineTrends: async (
     machineId: string,
     range: string = "7d",
@@ -63,7 +62,6 @@ export const dashboardApi = {
   },
 };
 
-
 // Alerts   — x-api-key secured
 export const alertsApi = {
   /** GET /api/v1/alerts/ */
@@ -72,12 +70,11 @@ export const alertsApi = {
     return data;
   },
 
-  /** POST /api/v1/alerts/{alert_id}/acknowledge */
+  /** PATCH /api/v1/alerts/{alert_id}/acknowledge */
   acknowledgeAlert: async (alertId: number): Promise<void> => {
-    await axiosInstance.post(`/api/v1/alerts/${alertId}/acknowledge`);
+    await axiosInstance.patch(`/api/v1/alerts/${alertId}/acknowledge`);
   },
 };
-
 // Data / Uploads   — x-api-key secured
 export const uploadsApi = {
   /** GET /api/v1/data/history */
@@ -88,7 +85,7 @@ export const uploadsApi = {
     return data;
   },
 
-  /** POST /api/v1/upload*/
+  /** POST /api/v1/upload — operational CSV */
   uploadOperational: async (
     file: File,
     onProgress?: (pct: number) => void,
@@ -110,7 +107,7 @@ export const uploadsApi = {
     return data;
   },
 
-  /** POST /api/v1/baseline/upload */
+  /** POST /api/v1/baseline/upload — initial baseline CSV */
   uploadBaselineInitial: async (
     file: File,
     onProgress?: (pct: number) => void,
@@ -132,7 +129,7 @@ export const uploadsApi = {
     return data;
   },
 
-  /** POST /api/v1/baseline/update*/
+  /** POST /api/v1/baseline/update — incremental baseline CSV */
   uploadBaselineUpdate: async (
     file: File,
     onProgress?: (pct: number) => void,
@@ -162,7 +159,7 @@ export const uploadsApi = {
     return data;
   },
 
-  /** GET /api/v1/baseline*/
+  /** GET /api/v1/baseline */
   getBaselines: async (): Promise<Baseline[]> => {
     const { data } = await axiosInstance.get<Baseline[]>("/api/v1/baseline");
     return data;
@@ -218,9 +215,7 @@ export const uploadsApi = {
   },
 };
 
-
 // Auth / Team 
-
 export const teamApi = {
   /** GET /api/v1/auth/me */
   getCurrentUser: async (): Promise<CurrentUser> => {
@@ -281,7 +276,6 @@ export const teamApi = {
     await axiosInstance.delete(`/api/v1/auth/invitations/${id}`);
   },
 };
-
 // Admin
 export const adminApi = {
   /** GET /api/v1/admin/users */

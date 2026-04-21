@@ -14,7 +14,7 @@ export function useAlerts() {
   });
 }
 
-/** POST /api/v1/alerts/{alert_id}/acknowledge*/
+
 export function useAcknowledgeAlert() {
   const queryClient = useQueryClient();
 
@@ -24,6 +24,7 @@ export function useAcknowledgeAlert() {
     onMutate: async (alertId: number) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.alerts.all() });
       const previous = queryClient.getQueryData<Alert[]>(queryKeys.alerts.all());
+
       queryClient.setQueryData<Alert[]>(queryKeys.alerts.all(), (old = []) =>
         old.map((a) =>
           a.id === alertId
@@ -36,6 +37,7 @@ export function useAcknowledgeAlert() {
             : a,
         ),
       );
+
       return { previous };
     },
 
@@ -51,7 +53,7 @@ export function useAcknowledgeAlert() {
   });
 }
 
-/**count of unacknowledged alerts for the nav badge */
+/** Derived: count of unacknowledged alerts for the nav badge */
 export function useUnacknowledgedCount(): number {
   const { data = [] } = useAlerts();
   return data.filter((a) => !a.acknowledged).length;

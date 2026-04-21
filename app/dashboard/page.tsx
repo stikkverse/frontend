@@ -36,8 +36,9 @@ export default function OverviewPage() {
   } = useDashboardMachines();
 
   const showError = summaryError && isConnectivityError(summaryErrorObj);
-  const machineCount = summary?.machine_count ?? 0;
-  const isEmpty = !summaryLoading && !showError && machineCount === 0;
+  const machinesTotal = summary?.machines_total ?? 0;
+  const millName = summary?.mill_name ?? "";
+  const isEmpty = !summaryLoading && !showError && machinesTotal === 0;
 
   return (
     <div className="flex flex-col gap-5">
@@ -51,7 +52,7 @@ export default function OverviewPage() {
           <p className="font-sans text-[13px] mt-1 text-(--text-secondary)">
             {isEmpty
               ? "No data yet — upload your first CSV to get started"
-              : `Aggregated performance metrics across ${machineCount} machines`}
+              : `Aggregated performance metrics across ${machinesTotal} machines${millName ? ` in ${millName}` : ""}`}
           </p>
         )}
       </div>
@@ -76,29 +77,29 @@ export default function OverviewPage() {
         ) : (
           <>
             <MetricCard
-              label="TOTAL CO₂"
-              value={(summary?.total_co2_kg ?? 0).toFixed(1)}
+              label="TOTAL EXCESS CO₂"
+              value={(summary?.total_excess_co2_kg ?? 0).toFixed(1)}
               unit="kg"
               accentColor="var(--amber)"
               delay={100}
             />
             <MetricCard
-              label="TOTAL ENERGY"
-              value={(summary?.total_energy_kwh ?? 0).toFixed(1)}
-              unit="kWh"
-              accentColor="var(--cyan)"
+              label="AVOIDABLE COST"
+              value={(summary?.avoidable_cost_usd ?? 0).toFixed(2)}
+              prefix="$"
+              accentColor="var(--red)"
               delay={200}
             />
             <MetricCard
-              label="MACHINES"
-              value={String(machineCount)}
+              label="MACHINES ACTIVE"
+              value={`${summary?.machines_running ?? 0}/${machinesTotal}`}
               accentColor="var(--green)"
               delay={300}
             />
             <MetricCard
-              label="ACTIVE ALERTS"
-              value={String(summary?.active_alerts_count ?? 0)}
-              accentColor="var(--red)"
+              label="MACHINES IDLE"
+              value={String(summary?.machines_idle ?? 0)}
+              accentColor="var(--text-muted)"
               delay={400}
             />
           </>
@@ -115,11 +116,14 @@ export default function OverviewPage() {
         </h3>
 
         {machinesLoading ? (
-          <div className="flex gap-2.5 flex-wrap">
+          <div
+            className="grid gap-3"
+            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}
+          >
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-[10px] border bg-(--surface) p-6 lg:w-[19%] md:w-[19%] w-full mb-3 animate-pulse"
+                className="rounded-[10px] border bg-(--surface) p-4 animate-pulse"
                 style={{ borderColor: "var(--border)" }}
               >
                 <div className="h-4 w-16 rounded bg-(--bg-alt) mb-3" />
@@ -140,28 +144,31 @@ export default function OverviewPage() {
             </p>
           </div>
         ) : (
-          <div className="flex gap-2.5 flex-wrap justify-between">
+          <div
+            className="grid gap-3"
+            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}
+          >
             {machines.map((m) => {
-              const hc = getHealthColor(m.health_score);
-              const rc = getRiskColor(m.bearing_risk);
+              const hc = getHealthColor(m.health_score ?? 0);
+              const rc = getRiskColor(m.bearing_risk ?? "NORMAL");
               return (
                 <div
                   key={m.machine_id}
-                  className="rounded-[10px] border bg-(--surface) p-6 lg:w-[19%] md:w-[19%] w-full mb-3"
+                  className="rounded-[10px] border bg-(--surface) p-4"
                   style={{
                     borderColor: "var(--border)",
                     borderTop: `3px solid ${rc}`,
                     boxShadow: "var(--card-shadow)",
                   }}
                 >
-                  <p className="font-mono text-[14px] font-bold" style={{ color: "var(--text)" }}>
+                  <p className="font-mono text-[13px] font-bold" style={{ color: "var(--text)" }}>
                     {m.machine_id}
                   </p>
                   <p className="font-mono text-[22px] font-bold mt-1" style={{ color: hc }}>
-                    {m.health_score}
+                    {m.health_score ?? 0}
                   </p>
                   <p className="font-mono text-[9px] tracking-widest mt-0.5" style={{ color: "var(--text-muted)" }}>
-                    {m.status === "IDLE" ? "IDLE" : m.bearing_risk}
+                    {m.status === "IDLE" ? "IDLE" : (m.bearing_risk ?? "NORMAL")}
                   </p>
                 </div>
               );
