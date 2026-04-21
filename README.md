@@ -118,6 +118,6 @@ StikkVerse uses a **Machine Vitals Monitor** metaphor — each machine is treate
 
 ---
 
-## License
+## Author
 
-MIT
+- StikkVerse team.
