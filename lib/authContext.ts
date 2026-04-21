@@ -19,7 +19,7 @@ interface AuthContextValue {
   email: string;
   password: string;
   mill_id: string;
-  role: "OWNER" | "MANAGER" | "MEMBER";
+  role: "OWNER" | "MANAGER" | "MEMBER" | "ADMIN";
 }) => Promise<void>;
   logout: () => Promise<void>;
 }

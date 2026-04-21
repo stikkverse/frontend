@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, FileSpreadsheet} from "lucide-react";
+import { Upload, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,18 +20,26 @@ const CSV_COLUMNS = [
   { name: "motor_state", type: "enum", example: "RUNNING", description: "RUNNING or OFF" },
 ];
 
-export default function UploadInfoCard() {
+interface UploadInfoProps {
+  onTaskCreated?: (filename: string, taskId: string) => void;
+}
+
+export default function UploadInfo({ onTaskCreated }: UploadInfoProps) {
   const [open, setOpen] = useState(false);
 
+  const handleComplete = () => {
+    try {
+      const taskId = sessionStorage.getItem("latest_task_id");
+      const filename = sessionStorage.getItem("latest_filename");
+      if (taskId && filename && onTaskCreated) {
+        onTaskCreated(filename, taskId);
+      }
+    } catch { /* ignore */ }
+    setOpen(false);
+  };
+
   return (
-    <div
-      className="rounded-[14px] border overflow-hidden"
-      style={{
-        borderColor: "var(--border)",
-        background: "var(--surface)",
-        boxShadow: "var(--card-shadow)",
-      }}
-    >
+    <div className="rounded-[14px] border overflow-hidden border-border bg-(--surface) shadow-(--card-shadow)">
       <div className="p-5 pb-0">
         <div className="flex items-center gap-2 mb-3">
           <FileSpreadsheet size={16} className="text-(--cyan)" />
@@ -40,49 +48,28 @@ export default function UploadInfoCard() {
           </p>
         </div>
         <p className="font-sans text-[13px] text-(--text-secondary) leading-relaxed mb-4">
-           Start your upload with Basline data, followed by operational data, all in CSV format.
+          Start your upload with Baseline data, followed by operational data, all in CSV format.
         </p>
       </div>
+
       <div className="px-5">
-        <div
-          className="rounded-lg border overflow-hidden"
-          style={{ borderColor: "var(--border)" }}
-        >
-          <table className="w-full text-left" style={{ borderCollapse: "collapse" }}>
+        <div className="rounded-lg border overflow-hidden border-border">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr style={{ background: "var(--bg-alt)" }}>
-                <th className="font-mono text-[9px] tracking-widest text-(--text-muted) px-3 py-2">
-                  COLUMN
-                </th>
-                <th className="font-mono text-[9px] tracking-widest text-(--text-muted) px-3 py-2">
-                  TYPE
-                </th>
-                <th className="font-mono text-[9px] tracking-widest text-(--text-muted) px-3 py-2 hidden md:table-cell">
-                  EXAMPLE
-                </th>
-                <th className="font-mono text-[9px] tracking-widest text-(--text-muted) px-3 py-2 hidden lg:table-cell">
-                  DESCRIPTION
-                </th>
+              <tr className="bg-(--bg-alt)">
+                <th className="font-mono text-[9px] tracking-widest text-(--text-muted) px-3 py-2">COLUMN</th>
+                <th className="font-mono text-[9px] tracking-widest text-(--text-muted) px-3 py-2">TYPE</th>
+                <th className="font-mono text-[9px] tracking-widest text-(--text-muted) px-3 py-2 hidden md:table-cell">EXAMPLE</th>
+                <th className="font-mono text-[9px] tracking-widest text-(--text-muted) px-3 py-2 hidden lg:table-cell">DESCRIPTION</th>
               </tr>
             </thead>
             <tbody>
               {CSV_COLUMNS.map((col) => (
-                <tr
-                  key={col.name}
-                  style={{ borderTop: "1px solid var(--border)" }}
-                >
-                  <td className="font-mono text-[11px] font-semibold text-(--cyan) px-3 py-2">
-                    {col.name}
-                  </td>
-                  <td className="font-mono text-[10px] text-(--text-muted) px-3 py-2">
-                    {col.type}
-                  </td>
-                  <td className="font-mono text-[10px] text-(--text-secondary) px-3 py-2 hidden md:table-cell">
-                    {col.example}
-                  </td>
-                  <td className="font-sans text-[11px] text-(--text-muted) px-3 py-2 hidden lg:table-cell">
-                    {col.description}
-                  </td>
+                <tr key={col.name} className="border-t border-border">
+                  <td className="font-mono text-[11px] font-semibold text-(--cyan) px-3 py-2">{col.name}</td>
+                  <td className="font-mono text-[10px] text-(--text-muted) px-3 py-2">{col.type}</td>
+                  <td className="font-mono text-[10px] text-(--text-secondary) px-3 py-2 hidden md:table-cell">{col.example}</td>
+                  <td className="font-sans text-[11px] text-(--text-muted) px-3 py-2 hidden lg:table-cell">{col.description}</td>
                 </tr>
               ))}
             </tbody>
@@ -104,7 +91,7 @@ export default function UploadInfoCard() {
               Select your upload type and drop your CSV file below
             </DialogDescription>
             <div className="mt-4">
-              <UploadZone onComplete={() => setOpen(false)} />
+              <UploadZone onComplete={handleComplete} />
             </div>
           </DialogContent>
         </Dialog>

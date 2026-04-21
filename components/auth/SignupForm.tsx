@@ -84,7 +84,7 @@ export default function SignupForm() {
     defaultValues: {
       email: invitedEmail,
       mill_id: invitedMillId,
-      role: (invitedRole as "OWNER" | "MANAGER" | "MEMBER") || "MEMBER",
+      role: (invitedRole as "OWNER" | "MANAGER" | "MEMBER" | "ADMIN") || "MEMBER",
       password: "",
       confirmPassword: "",
     },
@@ -95,7 +95,7 @@ export default function SignupForm() {
       form.reset({
         email: invitedEmail,
         mill_id: invitedMillId,
-        role: invitedRole as "OWNER" | "MANAGER" | "MEMBER",
+        role: invitedRole as "OWNER" | "MANAGER" | "MEMBER" | "ADMIN",
         password: "",
         confirmPassword: "",
       });
@@ -256,6 +256,7 @@ export default function SignupForm() {
                       <option value="MEMBER">MEMBER</option>
                       <option value="MANAGER">MANAGER</option>
                       <option value="OWNER">OWNER</option>
+                      <option value="ADMIN">ADMIN</option>
                     </select>
                     {fieldState.invalid && (
                       <FieldError

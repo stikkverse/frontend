@@ -8,6 +8,7 @@ import UploadZone from "@/components/dashboard/UploadZone";
 import type { ProcessingStatus, UploadHistoryItem } from "@/lib/type";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
+import UploadInfo from "@/components/dashboard/UploadInfo";
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
@@ -163,15 +164,7 @@ export default function ApiPage() {
             Upload Data
           </h3>
           <div className="max-w-150">
-            <UploadZone
-              onComplete={() => {
-                try {
-                  const taskId = sessionStorage.getItem("latest_task_id");
-                  const filename = sessionStorage.getItem("latest_filename");
-                  if (taskId && filename) setTaskId(filename, taskId);
-                } catch { /* ignore */ }
-              }}
-            />
+          <UploadInfo onTaskCreated={setTaskId} />
           </div>
         </div>
       </div>
