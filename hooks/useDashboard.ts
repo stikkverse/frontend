@@ -4,10 +4,15 @@ import { queryKeys } from "@/lib/queryKeys";
 import type { DashboardSummary, DashboardMachine, MachineSpec } from "@/lib/type";
 
 const EMPTY_SUMMARY: DashboardSummary = {
-  total_energy_kwh: 0,
-  total_co2_kg: 0,
-  machine_count: 0,
-  active_alerts_count: 0,
+  mill_id: "",
+  mill_name: "",
+  date: "",
+  total_excess_co2_kg: 0,
+  avoidable_cost_usd: 0,
+  machines_total: 0,
+  machines_running: 0,
+  machines_idle: 0,
+  last_updated: "",
 };
 
 /** GET /api/v1/dashboard/summary */

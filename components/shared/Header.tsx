@@ -7,13 +7,13 @@ import Logo from "./Logo";
 
 export default function Header() {
   const [now, setNow] = useState<Date | null>(null);
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
 
   useEffect(() => {
-    setNow(new Date());
-    const interval = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(interval);
-  }, []);
+  const init = setTimeout(() => setNow(new Date()), 0);
+  const interval = setInterval(() => setNow(new Date()), 60_000);
+  return () => { clearTimeout(init); clearInterval(interval); };
+}, []);
 
   return (
     <div className="mb-7 w-full">

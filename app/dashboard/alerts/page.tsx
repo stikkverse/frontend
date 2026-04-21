@@ -106,7 +106,6 @@ export default function AlertsPage() {
     data: alerts = [],
     isLoading,
     isError,
-    isPlaceholderData,
     error,
   } = useAlerts();
   const { mutate: acknowledge, isPending } = useAcknowledgeAlert();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, FileSpreadsheet, Info } from "lucide-react";
+import { Upload, FileSpreadsheet} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

@@ -41,9 +41,12 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
   );
 
   useEffect(() => {
-    const pref = getInitialPreference();
-    setPreference(pref);
-    setIsDark(resolveIsDark(pref));
+    const init = setTimeout(() => {
+      const pref = getInitialPreference();
+      setPreference(pref);
+      setIsDark(resolveIsDark(pref));
+    }, 0);
+    return () => clearTimeout(init);
   }, []);
 
   useEffect(() => {

@@ -12,7 +12,7 @@ export default function LoginPage() {
             Welcome back.
           </h1>
           <p className="font-sans text-[18px] leading-relaxed text-(--text-secondary)">
-            Monitor your mill's energy output, bearing health, and carbon
+            Monitor your mill&apos; energy output, bearing health, and carbon
             footprint — all in one place.
           </p>
         </div>
