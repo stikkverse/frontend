@@ -51,7 +51,7 @@ export const signupSchema = z
     mill_id: z
       .string()
       .min(1, "Mill ID is required"),
-    role: z.enum(["OWNER", "MANAGER", "MEMBER", "ADMIN"], {
+    role: z.enum(["admin", "manager"], {
       message: "Select a valid role",
     }),
     password: z

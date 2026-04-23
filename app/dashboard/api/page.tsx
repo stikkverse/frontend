@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import { useUploadHistory, useBaselines, useTaskStatus } from "@/hooks/useUploads";
 import { useCurrentUser } from "@/hooks/useTeam";
 import ApiKeyPanel from "@/components/dashboard/ApiKeyPanel";
-import UploadZone from "@/components/dashboard/UploadZone";
 import type { ProcessingStatus, UploadHistoryItem } from "@/lib/type";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";

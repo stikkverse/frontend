@@ -71,7 +71,7 @@ export default function AuthProvider({
     email: string;
     password: string;
     mill_id: string;
-    role: "OWNER" | "MANAGER" | "MEMBER" | "ADMIN";
+    role: "admin" | "manager";
   }) => {
     await axiosInstance.post("/api/v1/auth/register", payload);
   };

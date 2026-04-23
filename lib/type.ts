@@ -1,4 +1,4 @@
-export type UserRole = "OWNER" | "MANAGER" | "MEMBER" | "ADMIN";
+export type UserRole = "admin" | "manager";
 
 export interface UserRegister {
   email: string;

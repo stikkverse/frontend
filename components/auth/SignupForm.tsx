@@ -84,7 +84,7 @@ export default function SignupForm() {
     defaultValues: {
       email: invitedEmail,
       mill_id: invitedMillId,
-      role: (invitedRole as "OWNER" | "MANAGER" | "MEMBER" | "ADMIN") || "MEMBER",
+      role: (invitedRole as "admin" | "manager") || "manager",
       password: "",
       confirmPassword: "",
     },
@@ -95,7 +95,7 @@ export default function SignupForm() {
       form.reset({
         email: invitedEmail,
         mill_id: invitedMillId,
-        role: invitedRole as "OWNER" | "MANAGER" | "MEMBER" | "ADMIN",
+        role: invitedRole as "admin" | "manager",
         password: "",
         confirmPassword: "",
       });
@@ -253,10 +253,8 @@ export default function SignupForm() {
                         hasInvite ? "opacity-70 cursor-not-allowed" : ""
                       }`}
                     >
-                      <option value="MEMBER">MEMBER</option>
-                      <option value="MANAGER">MANAGER</option>
-                      <option value="OWNER">OWNER</option>
-                      <option value="ADMIN">ADMIN</option>
+                      <option value="admin">ADMIN</option>
+                      <option value="manager">MANAGER</option>
                     </select>
                     {fieldState.invalid && (
                       <FieldError
