@@ -71,7 +71,7 @@ export const inviteSchema = z.object({
   email: z
     .email("Enter a valid email address")
     .min(1, "Email is required"),
-  role: z.enum(["MANAGER", "MEMBER"], {
+  role: z.enum(["admin", "manager"], {
     message: "Select a role",
   }),
 });

@@ -13,15 +13,15 @@ import type { TeammateResponse, InvitationResponse, UserRole } from "@/lib/type"
 
 function roleStyle(role: UserRole) {
   switch (role) {
-    case "OWNER":
+    case "admin":
       return { color: "var(--cyan)", bg: "var(--cyan-bg)" };
-    case "ADMIN":
+    case "manager":
       return { color: "var(--amber)", bg: "var(--amber-bg)" };
-    case "MANAGER":
-      return { color: "var(--green)", bg: "var(--green-bg)" };
-    case "MEMBER":
-    default:
-      return { color: "var(--text-muted)", bg: "var(--bg-alt)" };
+    // case "MANAGER":
+    //   return { color: "var(--green)", bg: "var(--green-bg)" };
+    // case "MEMBER":
+    // default:
+    //   return { color: "var(--text-muted)", bg: "var(--bg-alt)" };
   }
 }
 
@@ -181,7 +181,7 @@ export default function TeamPage() {
   const { mutate: revoke, isPending: isRevoking } = useRevokeInvitation();
 
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<"MANAGER" | "MEMBER">("MEMBER");
+  const [inviteRole, setInviteRole] = useState<"manager" | "admin">("manager");
   const [sentFlash, setSentFlash] = useState(false);
 
   const handleInvite = () => {
@@ -232,7 +232,7 @@ export default function TeamPage() {
           />
           <select
             value={inviteRole}
-            onChange={(e) => setInviteRole(e.target.value as "MANAGER" | "MEMBER")}
+            onChange={(e) => setInviteRole(e.target.value as "manager" | "admin")}
             className="px-3 py-2 rounded-lg border font-mono text-[11px] outline-none cursor-pointer"
             style={{ borderColor: "var(--border)", background: "var(--bg-alt)", color: "var(--text)" }}
           >
