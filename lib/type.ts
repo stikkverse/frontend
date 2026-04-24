@@ -17,6 +17,7 @@ export interface Token {
   access_token: string;
   token_type: string;
   api_key: string | null;
+  mill_id: string | null; 
 }
 
 export interface CurrentUser {
@@ -55,7 +56,8 @@ export interface InvitationResponse {
   is_accepted: boolean;
   created_at: string;
 }
-// Dashboard 
+
+// Dashboard
 export type BearingRisk = "HIGH" | "WARNING" | "NORMAL";
 export type MachineStatus = "RUNNING" | "IDLE";
 
@@ -99,6 +101,7 @@ export interface MachineTrends {
   range: string;
   data_points: MachineTrendPoint[];
 }
+
 // Alerts
 export type AlertSeverity = "HIGH" | "WARNING" | "INFO";
 
@@ -116,7 +119,6 @@ export interface Alert {
 
 // Data / Uploads
 export type ProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
-
 
 export interface UploadHistoryItem {
   id: number;
@@ -157,7 +159,59 @@ export interface BaselineUpdate {
   std_current: number;
   p95_current: number;
 }
+
 // Mill Summary
+export interface MillSummaryParams {
+  millId: string;
+  startDate?: string;
+  endDate?: string;
+  machineId?: string;
+}
+
+export interface ReferenceMetrics {
+  baseline_mean: number;
+  baseline_std: number;
+  baseline_p95: number;
+}
+
+export interface HealthScoreBreakdown {
+  load_penalty: number;
+  peak_penalty: number;
+  drift_penalty: number;
+  category: string;
+}
+
+export interface MillMachine {
+  machine_id: string;
+  name: string;
+  total_co2_kg: number;
+  total_energy_kwh: number;
+  run_hours: number;
+  avg_current_A: number;
+  reference_metrics: ReferenceMetrics;
+  health_score: number;
+  health_score_breakdown: HealthScoreBreakdown;
+  bearing_risk: BearingRisk;
+  excess_co2_kg: number;
+  insights: string[];
+}
+
+export interface SummaryMetrics {
+  total_energy_kwh: number;
+  total_co2_kg: number;
+  total_excess_co2_kg: number;
+  avoidable_cost_usd: number;
+}
+
+export interface MillSummaryDetail {
+  mill_id: string;
+  db_connected: boolean;
+  last_updated: string;
+  summary_metrics: SummaryMetrics;
+  machines: MillMachine[];
+}
+
+// MillSummary
 export interface MillSummary {
   mill_id: string;
   start_date: string;
@@ -172,13 +226,7 @@ export interface MillSummary {
   }[];
 }
 
-export interface MillSummaryParams {
-  millId: string;
-  startDate?: string;
-  endDate?: string;
-  machineId?: string;
-}
-// Admin 
+// Admin
 export interface UserCreate {
   email: string;
   password: string;
@@ -186,9 +234,9 @@ export interface UserCreate {
 }
 
 export interface MillCreate {
-  mill_tag: string;
-  mill_name: string;
-  user_id: number;
+  mill_id: string;       // required
+  user_id?: number;      // optional
+  email?: string;        // optional
 }
 
 export interface StatsUpdate {
@@ -196,7 +244,7 @@ export interface StatsUpdate {
   bearing_risk: string;
   message: string;
 }
-// UI navigation — unchanged
+// UI navigation
 export interface TabItem {
   id: string;
   label: string;
