@@ -1,9 +1,15 @@
 "use client";
 
-import { useDashboardSummary, useDashboardMachines } from "@/hooks/useDashboard";
+import {
+  useDashboardSummary,
+  useDashboardMachines,
+} from "@/hooks/useDashboard";
 import { getRiskColor, getHealthColor } from "@/lib/helper";
 import MetricCard from "@/components/dashboard/MetricCard";
 import AlertBanner from "@/components/dashboard/AlertBanner";
+import { useMillSummary } from "@/hooks/useMillSummary";
+import HealthRing from "@/components/dashboard/HealthRing";
+import Link from "next/link";
 
 function MetricSkeleton() {
   return (
@@ -15,7 +21,8 @@ function MetricSkeleton() {
 }
 
 function isConnectivityError(error: unknown): boolean {
-  const status = (error as { response?: { status?: number } })?.response?.status;
+  const status = (error as { response?: { status?: number } })?.response
+    ?.status;
   if (!status) return true;
   if (status === 401 || status === 403 || status === 422) return false;
   return status >= 500;
@@ -28,15 +35,21 @@ export default function OverviewPage() {
     isError: summaryError,
     error: summaryErrorObj,
   } = useDashboardSummary();
+  const { data: millData, isLoading: millLoading } = useMillSummary();
+
+  const metrics = millData?.summary_metrics;
+  const millMachines = millData?.machines ?? [];
+  console.log(millMachines);
 
   const {
     data: machines = [],
     isLoading: machinesLoading,
     isPlaceholderData: machinesPlaceholder,
   } = useDashboardMachines();
+  console.log(machines, "MMMM");
 
   const showError = summaryError && isConnectivityError(summaryErrorObj);
-  const machinesTotal = summary?.machines_total ?? 0;
+  const machinesTotal = summary?.machine_count ?? 0;
   const millName = summary?.mill_name ?? "";
   const isEmpty = !summaryLoading && !showError && machinesTotal === 0;
 
@@ -46,7 +59,7 @@ export default function OverviewPage() {
         <h2 className="font-sans text-[20px] font-bold m-0 text-(--text)">
           Energy &amp; Carbon Summary
         </h2>
-        {summaryLoading ? (
+        {millLoading ? (
           <div className="h-4 w-64 rounded bg-(--bg-alt) animate-pulse mt-1" />
         ) : (
           <p className="font-sans text-[13px] mt-1 text-(--text-secondary)">
@@ -60,7 +73,11 @@ export default function OverviewPage() {
       {showError && (
         <div
           className="rounded-[10px] border p-4 font-mono text-[12px]"
-          style={{ borderColor: "var(--red)", color: "var(--red)", background: "var(--red-bg)" }}
+          style={{
+            borderColor: "var(--red)",
+            color: "var(--red)",
+            background: "var(--red-bg)",
+          }}
         >
           ⚠ Failed to load dashboard data. Check your connection and refresh.
         </div>
@@ -78,29 +95,37 @@ export default function OverviewPage() {
           <>
             <MetricCard
               label="TOTAL EXCESS CO₂"
-              value={(summary?.total_excess_co2_kg ?? 0).toFixed(1)}
+              value={(metrics?.total_excess_co2_kg ?? 0).toFixed(1)}
               unit="kg"
               accentColor="var(--amber)"
               delay={100}
             />
             <MetricCard
               label="AVOIDABLE COST"
-              value={(summary?.avoidable_cost_usd ?? 0).toFixed(2)}
+              value={(metrics?.avoidable_cost_usd ?? 0).toFixed(2)}
               prefix="$"
+              accentColor="var(--cyan)"
+              delay={200}
+            />
+            <MetricCard
+              label="TOTAL CO₂"
+              value={(summary?.total_co2_kg ?? 0).toFixed(1)}
+              unit="kg"
+              accentColor="var(--amber)"
+              delay={100}
+            />
+            <MetricCard
+              label="TOTAL ENERGY"
+              value={(metrics?.total_energy_kwh ?? 0).toFixed(2)}
+              unit="KWH"
               accentColor="var(--red)"
               delay={200}
             />
             <MetricCard
               label="MACHINES ACTIVE"
-              value={`${summary?.machines_running ?? 0}/${machinesTotal}`}
+              value={`${millMachines.length ?? 0}/${summary?.machine_count}`}
               accentColor="var(--green)"
               delay={300}
-            />
-            <MetricCard
-              label="MACHINES IDLE"
-              value={String(summary?.machines_idle ?? 0)}
-              accentColor="var(--text-muted)"
-              delay={400}
             />
           </>
         )}
@@ -111,14 +136,16 @@ export default function OverviewPage() {
       )}
 
       <div className="my-6">
-        <h3 className="font-sans text-base font-semibold mb-3 text-(--text)">
-          Fleet Health at a Glance
+        <h3 className="font-sans text-base font-semibold mb-6 text-(--text)">
+          Machine Health at a Glance
         </h3>
 
-        {machinesLoading ? (
+        {millLoading ? (
           <div
             className="grid gap-3"
-            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}
+            style={{
+              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+            }}
           >
             {Array.from({ length: 5 }).map((_, i) => (
               <div
@@ -131,7 +158,7 @@ export default function OverviewPage() {
               </div>
             ))}
           </div>
-        ) : machines.length === 0 ? (
+        ) : millMachines.length === 0 ? (
           <div
             className="rounded-[14px] border border-dashed p-12 text-center"
             style={{ borderColor: "var(--border)" }}
@@ -140,40 +167,52 @@ export default function OverviewPage() {
               NO MACHINES REGISTERED
             </p>
             <p className="font-sans text-[13px] text-(--text-secondary)">
-              Upload a baseline CSV to register your machines and start monitoring.
+              Upload a baseline CSV to register your machines and start
+              monitoring.
             </p>
           </div>
         ) : (
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}
-          >
-            {machines.map((m) => {
-              const hc = getHealthColor(m.health_score ?? 0);
-              const rc = getRiskColor(m.bearing_risk ?? "NORMAL");
-              return (
-                <div
-                  key={m.machine_id}
-                  className="rounded-[10px] border bg-(--surface) p-4"
-                  style={{
-                    borderColor: "var(--border)",
-                    borderTop: `3px solid ${rc}`,
-                    boxShadow: "var(--card-shadow)",
-                  }}
-                >
-                  <p className="font-mono text-[13px] font-bold" style={{ color: "var(--text)" }}>
-                    {m.machine_id}
-                  </p>
-                  <p className="font-mono text-[22px] font-bold mt-1" style={{ color: hc }}>
-                    {m.health_score ?? 0}
-                  </p>
-                  <p className="font-mono text-[9px] tracking-widest mt-0.5" style={{ color: "var(--text-muted)" }}>
-                    {m.status === "IDLE" ? "IDLE" : (m.bearing_risk ?? "NORMAL")}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+          <Link href="/dashboard/machines">
+            <div className="flex justify-between items-center flex-wrap">
+              {millMachines.map((m) => {
+                const hc = getHealthColor(m.health_score ?? 0);
+                const rc = getRiskColor(m.bearing_risk ?? "NORMAL");
+                return (
+                  <div
+                    key={m.machine_id}
+                    className="rounded-[10px] border bg-(--surface) p-4 lg:w-[33%] md:w-[33%] w-full"
+                    style={{
+                      borderColor: "var(--border)",
+                      borderTop: `3px solid ${rc}`,
+                      boxShadow: "var(--card-shadow)",
+                    }}
+                  >
+                    <p
+                      className="font-mono text-[14px] font-bold"
+                      style={{ color: "var(--text)" }}
+                    >
+                      {m.machine_id}
+                    </p>
+                    <p className="font-mono text-[10px] text-(--text)">
+                      {m.name}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-mono text-[9px] tracking-widest mt-0.5 text-text-muted">
+                          {m.bearing_risk ?? "NORMAL"}
+                        </p>
+                        <p className="text-[13px] text-cyan-300">
+                          {m.run_hours} Hours
+                        </p>
+                      </div>
+
+                      <HealthRing score={m.health_score ?? 0} size={90} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Link>
         )}
       </div>
     </div>

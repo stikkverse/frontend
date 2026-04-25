@@ -67,7 +67,8 @@ export interface DashboardSummary {
   date: string;
   total_excess_co2_kg: number;
   avoidable_cost_usd: number;
-  machines_total: number;
+  machine_count: number;
+  total_co2_kg: number;
   machines_running: number;
   machines_idle: number;
   last_updated: string;
@@ -76,6 +77,7 @@ export interface DashboardSummary {
 export interface DashboardMachine {
   machine_id: string;
   health_score: number;
+  energy_consumption: number;
   bearing_risk: BearingRisk;
   excess_co2_today_kg: number;
   status: MachineStatus;

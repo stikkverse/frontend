@@ -132,7 +132,7 @@ export default function MachinesPage() {
                     ))}
                   </tr>
                 ))
-                : specs.map((s) => (
+                : machines.map((s) => (
                   <tr
                     key={s.machine_id}
                     className="transition-colors duration-150"
@@ -142,12 +142,13 @@ export default function MachinesPage() {
                   >
                     <td className="font-mono text-[13px] font-semibold px-4 py-3" style={{ color: "var(--text)" }}>
                       {s.machine_id}
+                      
                     </td>
                     <td className="font-sans text-[13px] px-4 py-3" style={{ color: "var(--text-secondary)" }}>
                       {s.machine_type}
                     </td>
                     <td className="font-mono text-[13px] px-4 py-3" style={{ color: "var(--text)" }}>
-                      {s.rated_power_kw} <span style={{ color: "var(--text-muted)" }}>kW</span>
+                      {s.energy_consumption} <span style={{ color: "var(--text-muted)" }}>kW</span>
                     </td>
                     <td className="font-mono text-[10px] tracking-[0.08em] uppercase px-4 py-3" style={{ color: "var(--text-muted)" }}>
                       {s.energy_source_type}

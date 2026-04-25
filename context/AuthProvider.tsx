@@ -52,6 +52,9 @@ export default function AuthProvider({
     if (data.api_key) {
       localStorage.setItem("api_key", data.api_key);
     }
+    if (data.mill_id) {
+      localStorage.setItem("mill_id", data.mill_id);
+    }
 
     await fetchUser();
     router.push("/dashboard");
@@ -84,6 +87,7 @@ export default function AuthProvider({
     } finally {
       localStorage.removeItem("access_token");
       localStorage.removeItem("api_key");
+      localStorage.removeItem("mill_id");
       setUser(null);
       router.push("/");
     }

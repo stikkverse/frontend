@@ -28,7 +28,7 @@ export default function MetricCard({
 
   return (
     <div
-      className="relative overflow-hidden rounded-[14px] border border-dash-border bg-(--surface) py-8 px-6 shadow-card transition-all duration-600 lg:w-[20%] md:w-[20%] w-full"
+      className="relative overflow-hidden rounded-[14px] border border-dash-border bg-(--surface) py-8 px-6 shadow-card transition-all duration-600 lg:w-[23%] md:w-[23%] w-full"
       style={{
         opacity: show ? 1 : 0,
         transform: show ? "translateY(0)" : "translateY(12px)",
