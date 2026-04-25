@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useDashboardMachines, useMachineSpecs } from "@/hooks/useDashboard";
+import { useMillMachines } from "@/hooks/useMillSummary";
 import SearchBar from "@/components/dashboard/SearchBar";
 import MachineCard from "@/components/dashboard/MachineCard";
 
@@ -29,9 +30,19 @@ function CardSkeleton() {
 
 export default function MachinesPage() {
   const { data: machinesData, isLoading: machinesLoading, isError } = useDashboardMachines();
-  const machines = Array.isArray(machinesData) ? machinesData : [];
-  const { data: specsData, isLoading: specsLoading } = useMachineSpecs();
-  const specs = Array.isArray(specsData) ? specsData : [];
+  const machines = useMemo(
+    () => (Array.isArray(machinesData) ? machinesData : []),
+    [machinesData],
+  );
+
+  const { data: specsData } = useMachineSpecs();
+  const specs = useMemo(
+    () => (Array.isArray(specsData) ? specsData : []),
+    [specsData],
+  );
+
+  // Detailed per-machine data from mill summary (run_hours, avg_current_A, etc.)
+  const { data: millMachines, isLoading: millMachinesLoading } = useMillMachines();
 
   const [search, setSearch] = useState("");
 
@@ -101,7 +112,7 @@ export default function MachinesPage() {
         </div>
       )}
 
-      {/* Machine Specifications Table */}
+      {/* Machine Specifications Table — uses millMachines for detailed fields */}
       <div className="mt-4">
         <h3 className="font-sans text-base font-semibold mb-3" style={{ color: "var(--text)" }}>
           Machine Specifications
@@ -110,7 +121,7 @@ export default function MachinesPage() {
           <table className="w-full text-left" style={{ borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--bg-alt)" }}>
-                {["MACHINE ID", "TYPE", "RATED POWER", "AVG CURRENT"].map((h) => (
+                {["MACHINE ID", "NAME", "TOTAL ENERGY (kWh)", "AVG CURRENT (A)", "RUN HOURS", "EXCESS CO₂ (kg)"].map((h) => (
                   <th
                     key={h}
                     className="font-mono text-[10px] tracking-[0.12em] px-4 py-3"
@@ -122,39 +133,56 @@ export default function MachinesPage() {
               </tr>
             </thead>
             <tbody>
-              {specsLoading
+              {millMachinesLoading
                 ? Array.from({ length: 4 }).map((_, i) => (
-                  <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                    {Array.from({ length: 4 }).map((__, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-3 w-24 rounded bg-(--bg-alt) animate-pulse" />
+                    <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
+                      {Array.from({ length: 6 }).map((__, j) => (
+                        <td key={j} className="px-4 py-3">
+                          <div className="h-3 w-24 rounded bg-(--bg-alt) animate-pulse" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                : millMachines.length === 0
+                  ? (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="px-4 py-8 text-center font-mono text-[12px]"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        No machine data available
                       </td>
-                    ))}
-                  </tr>
-                ))
-                : machines.map((s) => (
-                  <tr
-                    key={s.machine_id}
-                    className="transition-colors duration-150"
-                    style={{ borderTop: "1px solid var(--border)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <td className="font-mono text-[13px] font-semibold px-4 py-3" style={{ color: "var(--text)" }}>
-                      {s.machine_id}
-                      
-                    </td>
-                    <td className="font-sans text-[13px] px-4 py-3" style={{ color: "var(--text-secondary)" }}>
-                      {/* {s.machine_type} */}
-                    </td>
-                    <td className="font-mono text-[13px] px-4 py-3" style={{ color: "var(--text)" }}>
-                      {s.energy_consumption} <span style={{ color: "var(--text-muted)" }}>kW</span>
-                    </td>
-                    <td className="font-mono text-[10px] tracking-[0.08em] uppercase px-4 py-3" style={{ color: "var(--text-muted)" }}>
-                      {s.avg_current}
-                    </td>
-                  </tr>
-                ))}
+                    </tr>
+                  )
+                  : millMachines.map((m) => (
+                    <tr
+                      key={m.machine_id}
+                      className="transition-colors duration-150"
+                      style={{ borderTop: "1px solid var(--border)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <td className="font-mono text-[13px] font-semibold px-4 py-3" style={{ color: "var(--text)" }}>
+                        {m.machine_id}
+                      </td>
+                      <td className="font-sans text-[12px] px-4 py-3" style={{ color: "var(--text-secondary)" }}>
+                        {m.name}
+                      </td>
+                      <td className="font-mono text-[13px] px-4 py-3" style={{ color: "var(--cyan)" }}>
+                        {m.total_energy_kwh.toFixed(2)}
+                      </td>
+                      <td className="font-mono text-[13px] px-4 py-3" style={{ color: "var(--text)" }}>
+                        {m.avg_current_A.toFixed(2)} <span style={{ color: "var(--text-muted)" }}>A</span>
+                      </td>
+                      <td className="font-mono text-[13px] px-4 py-3" style={{ color: "var(--text)" }}>
+                        {m.run_hours.toFixed(1)} <span style={{ color: "var(--text-muted)" }}>h</span>
+                      </td>
+                      <td className="font-mono text-[13px] px-4 py-3" style={{ color: "var(--amber)" }}>
+                        {m.excess_co2_kg.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
             </tbody>
           </table>
         </div>

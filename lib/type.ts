@@ -67,8 +67,7 @@ export interface DashboardSummary {
   date: string;
   total_excess_co2_kg: number;
   avoidable_cost_usd: number;
-  machine_count: number;
-  total_co2_kg: number;
+  machines_total: number;
   machines_running: number;
   machines_idle: number;
   last_updated: string;
@@ -77,10 +76,8 @@ export interface DashboardSummary {
 export interface DashboardMachine {
   machine_id: string;
   health_score: number;
-  avg_current: number;
-  energy_consumption: number;
   bearing_risk: BearingRisk;
-  carbon_emissions: number;
+  excess_co2_today_kg: number;
   status: MachineStatus;
   last_reading_at: string;
 }
@@ -241,9 +238,9 @@ export interface UserCreate {
 }
 
 export interface MillCreate {
-  mill_id: string; // required
-  user_id?: number; // optional
-  email?: string; // optional
+  mill_id: string;
+  user_id?: number | null;
+  email?: string | null;
 }
 
 export interface StatsUpdate {

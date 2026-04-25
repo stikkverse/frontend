@@ -1,10 +1,7 @@
 "use client";
 
-import {
-  useDashboardSummary,
-  useDashboardMachines,
-} from "@/hooks/useDashboard";
-import { getRiskColor, getHealthColor } from "@/lib/helper";
+import { useDashboardSummary, useDashboardMachines } from "@/hooks/useDashboard";
+import { getRiskColor} from "@/lib/helper";
 import MetricCard from "@/components/dashboard/MetricCard";
 import AlertBanner from "@/components/dashboard/AlertBanner";
 import { useMillSummary } from "@/hooks/useMillSummary";
@@ -21,8 +18,7 @@ function MetricSkeleton() {
 }
 
 function isConnectivityError(error: unknown): boolean {
-  const status = (error as { response?: { status?: number } })?.response
-    ?.status;
+  const status = (error as { response?: { status?: number } })?.response?.status;
   if (!status) return true;
   if (status === 401 || status === 403 || status === 422) return false;
   return status >= 500;
@@ -35,21 +31,21 @@ export default function OverviewPage() {
     isError: summaryError,
     error: summaryErrorObj,
   } = useDashboardSummary();
-  const { data: millData, isLoading: millLoading } = useMillSummary();
 
-  const metrics = millData?.summary_metrics;
-  const millMachines = millData?.machines ?? [];
-  console.log(millMachines);
+  const { data: millData, isLoading: millLoading } = useMillSummary();
 
   const {
     data: machines = [],
     isLoading: machinesLoading,
     isPlaceholderData: machinesPlaceholder,
   } = useDashboardMachines();
-  console.log(machines, "MMMM");
+
+  const metrics = millData?.summary_metrics;
+  const millMachines = millData?.machines ?? [];
 
   const showError = summaryError && isConnectivityError(summaryErrorObj);
-  const machinesTotal = summary?.machine_count ?? 0;
+
+  const machinesTotal = summary?.machines_total ?? 0;
   const millName = summary?.mill_name ?? "";
   const isEmpty = !summaryLoading && !showError && machinesTotal === 0;
 
@@ -73,11 +69,7 @@ export default function OverviewPage() {
       {showError && (
         <div
           className="rounded-[10px] border p-4 font-mono text-[12px]"
-          style={{
-            borderColor: "var(--red)",
-            color: "var(--red)",
-            background: "var(--red-bg)",
-          }}
+          style={{ borderColor: "var(--red)", color: "var(--red)", background: "var(--red-bg)" }}
         >
           ⚠ Failed to load dashboard data. Check your connection and refresh.
         </div>
@@ -86,6 +78,7 @@ export default function OverviewPage() {
       <div className="flex gap-5 items-center flex-wrap">
         {summaryLoading ? (
           <>
+            <MetricSkeleton />
             <MetricSkeleton />
             <MetricSkeleton />
             <MetricSkeleton />
@@ -109,23 +102,23 @@ export default function OverviewPage() {
             />
             <MetricCard
               label="TOTAL CO₂"
-              value={(summary?.total_co2_kg ?? 0).toFixed(1)}
+              value={(metrics?.total_co2_kg ?? 0).toFixed(1)}
               unit="kg"
               accentColor="var(--amber)"
-              delay={100}
+              delay={300}
             />
             <MetricCard
               label="TOTAL ENERGY"
               value={(metrics?.total_energy_kwh ?? 0).toFixed(2)}
               unit="KWH"
               accentColor="var(--red)"
-              delay={200}
+              delay={400}
             />
             <MetricCard
               label="MACHINES ACTIVE"
-              value={`${millMachines.length ?? 0}/${summary?.machine_count}`}
+              value={`${millMachines.length}/${machinesTotal}`}
               accentColor="var(--green)"
-              delay={300}
+              delay={500}
             />
           </>
         )}
@@ -143,9 +136,7 @@ export default function OverviewPage() {
         {millLoading ? (
           <div
             className="grid gap-3"
-            style={{
-              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-            }}
+            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}
           >
             {Array.from({ length: 5 }).map((_, i) => (
               <div
@@ -167,15 +158,14 @@ export default function OverviewPage() {
               NO MACHINES REGISTERED
             </p>
             <p className="font-sans text-[13px] text-(--text-secondary)">
-              Upload a baseline CSV to register your machines and start
-              monitoring.
+              Upload a baseline CSV to register your machines and start monitoring.
             </p>
           </div>
         ) : (
           <Link href="/dashboard/machines">
             <div className="flex justify-between items-center flex-wrap">
               {millMachines.map((m) => {
-                const hc = getHealthColor(m.health_score ?? 0);
+                
                 const rc = getRiskColor(m.bearing_risk ?? "NORMAL");
                 return (
                   <div
@@ -187,10 +177,7 @@ export default function OverviewPage() {
                       boxShadow: "var(--card-shadow)",
                     }}
                   >
-                    <p
-                      className="font-mono text-[14px] font-bold"
-                      style={{ color: "var(--text)" }}
-                    >
+                    <p className="font-mono text-[14px] font-bold" style={{ color: "var(--text)" }}>
                       {m.machine_id}
                     </p>
                     <p className="font-mono text-[10px] text-(--text)">
@@ -198,14 +185,13 @@ export default function OverviewPage() {
                     </p>
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="font-mono text-[9px] tracking-widest mt-0.5 text-text-muted">
+                        <p className="font-mono text-[9px] tracking-widest mt-0.5 text-(--text-muted)">
                           {m.bearing_risk ?? "NORMAL"}
                         </p>
                         <p className="text-[13px] text-cyan-300">
                           {m.run_hours} Hours
                         </p>
                       </div>
-
                       <HealthRing score={m.health_score ?? 0} size={90} />
                     </div>
                   </div>

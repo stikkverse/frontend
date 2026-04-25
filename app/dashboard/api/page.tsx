@@ -4,10 +4,10 @@ import { useEffect, useRef } from "react";
 import { useUploadHistory, useBaselines, useTaskStatus } from "@/hooks/useUploads";
 import { useCurrentUser } from "@/hooks/useTeam";
 import ApiKeyPanel from "@/components/dashboard/ApiKeyPanel";
+import UploadInfoCard from "@/components/dashboard/UploadInfo";
 import type { ProcessingStatus, UploadHistoryItem } from "@/lib/type";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import UploadInfo from "@/components/dashboard/UploadInfo";
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
@@ -113,6 +113,8 @@ function useTaskIdMap() {
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
+const SEVEN_DAYS_AGO = new Date(Date.now() - SEVEN_DAYS_MS);
+
 export default function ApiPage() {
   const { data: uploads = [], isLoading: uploadsLoading } = useUploadHistory();
   const { data: baselines = [], isLoading: baselinesLoading } = useBaselines();
@@ -124,8 +126,8 @@ export default function ApiPage() {
       ? (localStorage.getItem("api_key") ?? "")
       : "";
 
-  const sevenDaysAgoRef = useRef(new Date(Date.now() - SEVEN_DAYS_MS));
-  const sevenDaysAgo = sevenDaysAgoRef.current;
+  // eslint-disable-next-line react-hooks/purity
+  const sevenDaysAgo = SEVEN_DAYS_AGO;
 
   const recentUploads = uploads.filter((u) => {
     if (!u.uploaded_at) return false;
@@ -141,12 +143,18 @@ export default function ApiPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="font-sans text-[20px] font-bold m-0" style={{ color: "var(--text)" }}>
+        <h2
+          className="font-sans text-[20px] font-bold m-0"
+          style={{ color: "var(--text)" }}
+        >
           API Access &amp; Data Uploads
         </h2>
-        <p className="font-sans text-[13px] mt-1" style={{ color: "var(--text-secondary)" }}>
+        <p
+          className="font-sans text-[13px] mt-1"
+          style={{ color: "var(--text-secondary)" }}
+        >
           Manage your API key, review upload history, and monitor baselines
-          {currentUser ? ` for mill ${currentUser.mill_id}` : ""}
+          {currentUser ? ` for ${currentUser.mill_id}` : ""}
         </p>
       </div>
 
@@ -163,22 +171,39 @@ export default function ApiPage() {
             Upload Data
           </h3>
           <div className="max-w-150">
-          <UploadInfo onTaskCreated={setTaskId} />
+            <UploadInfoCard
+              onTaskCreated={(filename, taskId) => {
+                if (taskId && filename) setTaskId(filename, taskId);
+              }}
+            />
           </div>
         </div>
       </div>
 
       {/* Upload History */}
       <div>
-        <h3 className="font-sans text-base font-semibold mb-3" style={{ color: "var(--text)" }}>
+        <h3
+          className="font-sans text-base font-semibold mb-3"
+          style={{ color: "var(--text)" }}
+        >
           Upload History
         </h3>
-        <div className="overflow-x-auto rounded-[12px] border" style={{ borderColor: "var(--border)" }}>
-          <table className="w-full text-left" style={{ borderCollapse: "collapse" }}>
+        <div
+          className="overflow-x-auto rounded-[12px] border"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <table
+            className="w-full text-left"
+            style={{ borderCollapse: "collapse" }}
+          >
             <thead>
               <tr style={{ background: "var(--bg-alt)" }}>
                 {["FILENAME", "UPLOADED", "STATUS"].map((h) => (
-                  <th key={h} className="font-mono text-[10px] tracking-[0.12em] px-4 py-3" style={{ color: "var(--text-muted)" }}>
+                  <th
+                    key={h}
+                    className="font-mono text-[10px] tracking-[0.12em] px-4 py-3"
+                    style={{ color: "var(--text-muted)" }}
+                  >
                     {h}
                   </th>
                 ))}
@@ -186,31 +211,50 @@ export default function ApiPage() {
             </thead>
             <tbody>
               {uploadsLoading
-                ? Array.from({ length: 4 }).map((_, i) => <TableRowSkeleton key={i} cols={3} />)
+                ? Array.from({ length: 4 }).map((_, i) => (
+                  <TableRowSkeleton key={i} cols={3} />
+                ))
                 : uploads.length === 0
                   ? (
                     <tr>
-                      <td colSpan={3} className="px-4 py-8 text-center font-mono text-[12px]" style={{ color: "var(--text-muted)" }}>
+                      <td
+                        colSpan={3}
+                        className="px-4 py-8 text-center font-mono text-[12px]"
+                        style={{ color: "var(--text-muted)" }}
+                      >
                         No uploads yet
                       </td>
                     </tr>
                   )
-                  : uploads.map((u: UploadHistoryItem, index: number) => (
+                  : uploads.map((u: UploadHistoryItem, i: number) => (
                     <tr
-                      key={index}
+                      key={`${u.filename}-${i}`}
                       className="transition-colors duration-150"
                       style={{ borderTop: "1px solid var(--border)" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = "var(--surface-hover)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
                     >
-                      <td className="font-mono text-[12px] px-4 py-3" style={{ color: "var(--text)" }}>
+                      <td
+                        className="font-mono text-[12px] px-4 py-3"
+                        style={{ color: "var(--text)" }}
+                      >
                         {u.filename}
                       </td>
-                      <td className="font-mono text-[11px] px-4 py-3" style={{ color: "var(--text-secondary)" }}>
+                      <td
+                        className="font-mono text-[11px] px-4 py-3"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
                         {formatDate(u.uploaded_at)}
                       </td>
                       <td className="px-4 py-3">
-                        <LiveStatusCell taskId={getTaskId(u.filename)} storedStatus={u.status} />
+                        <LiveStatusCell
+                          taskId={getTaskId(u.filename)}
+                          storedStatus={u.status}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -221,28 +265,58 @@ export default function ApiPage() {
 
       {/* Baselines */}
       <div>
-        <h3 className="font-sans text-base font-semibold mb-3" style={{ color: "var(--text)" }}>
+        <h3
+          className="font-sans text-base font-semibold mb-3"
+          style={{ color: "var(--text)" }}
+        >
           Current Baselines
         </h3>
-        <p className="font-sans text-[12px] mb-3" style={{ color: "var(--text-muted)" }}>
+        <p
+          className="font-sans text-[12px] mb-3"
+          style={{ color: "var(--text-muted)" }}
+        >
           Baseline current readings used for anomaly detection and health scoring
         </p>
-        <div className="overflow-x-auto rounded-[12px] border" style={{ borderColor: "var(--border)" }}>
-          <table className="w-full text-left" style={{ borderCollapse: "collapse" }}>
+        <div
+          className="overflow-x-auto rounded-[12px] border"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <table
+            className="w-full text-left"
+            style={{ borderCollapse: "collapse" }}
+          >
             <thead>
               <tr style={{ background: "var(--bg-alt)" }}>
-                {["MACHINE", "MEAN CURRENT (A)", "STD DEV (A)", "P95 CURRENT (A)", "LAST UPDATED"].map((h) => (
-                  <th key={h} className="font-mono text-[10px] tracking-[0.12em] px-4 py-3" style={{ color: "var(--text-muted)" }}>{h}</th>
+                {[
+                  "MACHINE",
+                  "MEAN CURRENT (A)",
+                  "STD DEV (A)",
+                  "P95 CURRENT (A)",
+                  "LAST UPDATED",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="font-mono text-[10px] tracking-[0.12em] px-4 py-3"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {baselinesLoading
-                ? Array.from({ length: 4 }).map((_, i) => <TableRowSkeleton key={i} cols={5} />)
+                ? Array.from({ length: 4 }).map((_, i) => (
+                  <TableRowSkeleton key={i} cols={5} />
+                ))
                 : baselines.length === 0
                   ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center font-mono text-[12px]" style={{ color: "var(--text-muted)" }}>
+                      <td
+                        colSpan={5}
+                        className="px-4 py-8 text-center font-mono text-[12px]"
+                        style={{ color: "var(--text-muted)" }}
+                      >
                         No baselines established yet
                       </td>
                     </tr>
@@ -252,14 +326,43 @@ export default function ApiPage() {
                       key={b.machine_id}
                       className="transition-colors duration-150"
                       style={{ borderTop: "1px solid var(--border)" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = "var(--surface-hover)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
                     >
-                      <td className="font-mono text-[13px] font-semibold px-4 py-3" style={{ color: "var(--text)" }}>{b.machine_id}</td>
-                      <td className="font-mono text-[12px] px-4 py-3" style={{ color: "var(--cyan)" }}>{b.mean_current.toFixed(1)}</td>
-                      <td className="font-mono text-[12px] px-4 py-3" style={{ color: "var(--text-secondary)" }}>±{b.std_current.toFixed(1)}</td>
-                      <td className="font-mono text-[12px] px-4 py-3" style={{ color: "var(--text-secondary)" }}>{b.p95_current.toFixed(1)}</td>
-                      <td className="font-mono text-[11px] px-4 py-3" style={{ color: "var(--text-muted)" }}>{formatDateShort(b.updated_at)}</td>
+                      <td
+                        className="font-mono text-[13px] font-semibold px-4 py-3"
+                        style={{ color: "var(--text)" }}
+                      >
+                        {b.machine_id}
+                      </td>
+                      <td
+                        className="font-mono text-[12px] px-4 py-3"
+                        style={{ color: "var(--cyan)" }}
+                      >
+                        {b.mean_current.toFixed(1)}
+                      </td>
+                      <td
+                        className="font-mono text-[12px] px-4 py-3"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        ±{b.std_current.toFixed(1)}
+                      </td>
+                      <td
+                        className="font-mono text-[12px] px-4 py-3"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        {b.p95_current.toFixed(1)}
+                      </td>
+                      <td
+                        className="font-mono text-[11px] px-4 py-3"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        {formatDateShort(b.updated_at)}
+                      </td>
                     </tr>
                   ))}
             </tbody>

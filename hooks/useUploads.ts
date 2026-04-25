@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { uploadsApi } from "@/lib/api";
-import type { BaselineUpdate, Baseline, UploadHistoryItem, MillSummaryParams } from "@/lib/type";
+import type { BaselineUpdate, Baseline, UploadHistoryItem } from "@/lib/type";
 import { queryKeys } from "@/lib/queryKeys";
 
 /** GET /api/v1/data/history */
@@ -58,7 +58,7 @@ export function useUploadBaselineUpdate() {
   });
 }
 
-/**GET /api/v1/task/{task_id}* Polls every 2 s*/
+/**GET /api/v1/task/{task_id} Polls every 2 s, stops automatically on COMPLETED or FAILED. */
 export function useTaskStatus(taskId: string | null) {
   return useQuery({
     queryKey: queryKeys.uploads.task(taskId ?? ""),
@@ -129,20 +129,5 @@ export function useDeleteBaseline() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.uploads.baselines() });
     },
-  });
-}
-
-/** GET /api/v1/mill/{mill_id}/summary */
-export function useMillSummary(params: MillSummaryParams) {
-  return useQuery({
-    queryKey: queryKeys.uploads.millSummary(
-      params.millId,
-      params.startDate,
-      params.endDate,
-      params.machineId,
-    ),
-    queryFn: () => uploadsApi.getMillSummary(params),
-    enabled: Boolean(params.millId),
-    staleTime: 5 * 60_000,
   });
 }

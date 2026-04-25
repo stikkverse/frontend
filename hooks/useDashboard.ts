@@ -8,9 +8,8 @@ const EMPTY_SUMMARY: DashboardSummary = {
   mill_name: "",
   date: "",
   total_excess_co2_kg: 0,
-  total_co2_kg: 0,
   avoidable_cost_usd: 0,
-  machine_count: 0,
+  machines_total: 0,
   machines_running: 0,
   machines_idle: 0,
   last_updated: "",
@@ -24,6 +23,7 @@ export function useDashboardSummary(date?: string) {
     placeholderData: EMPTY_SUMMARY,
     refetchInterval: 60_000,
     staleTime: 30_000,
+    select: (data) => data ?? EMPTY_SUMMARY,
   });
 }
 
@@ -60,5 +60,6 @@ export function useMachineTrends(machineId: string, range: string = "7d") {
     queryFn: () => dashboardApi.getMachineTrends(machineId, range),
     enabled: Boolean(machineId),
     staleTime: 5 * 60_000,
+    select: (data) => data ?? null,
   });
 }

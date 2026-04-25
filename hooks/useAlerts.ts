@@ -14,7 +14,6 @@ export function useAlerts() {
   });
 }
 
-
 export function useAcknowledgeAlert() {
   const queryClient = useQueryClient();
 
