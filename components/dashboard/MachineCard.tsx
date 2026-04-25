@@ -2,25 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { getRiskColor, getRiskGlow, getHealthColor, getCO2Color } from "@/lib/helper";
-import type { DashboardMachine } from "@/lib/type";
+import type { MillMachine } from "@/lib/type";
 import RiskBadge from "./RiskBadge";
 import HealthRing from "./HealthRing";
 import PulseLine from "./PulseLine";
 
 interface MachineCardProps {
-  machine: DashboardMachine;
+  machine: MillMachine;
   index: number;
 }
 
 export default function MachineCard({ machine, index }: MachineCardProps) {
   const [visible, setVisible] = useState<boolean>(false);
 
-  const isIdle   = machine.status === "IDLE";
-  const co2      = machine.excess_co2_today_kg ?? 0; 
-  const health   = machine.health_score ?? 0;
-  const risk     = machine.bearing_risk ?? "NORMAL";
-  const color    = getRiskColor(risk);
-  const hColor   = getHealthColor(health);
+  const co2 = machine.excess_co2_kg ?? 0;
+  const health = machine.health_score ?? 0;
+  const risk = machine.bearing_risk ?? "NORMAL";
+  const category = machine.health_score_breakdown?.category ?? "";
+  const isIdle = category.toLowerCase() === "idle";
+  const color = getRiskColor(risk);
+  const hColor = getHealthColor(health);
   const co2Color = getCO2Color(co2);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export default function MachineCard({ machine, index }: MachineCardProps) {
 
   return (
     <div
-      className="rounded-[14px] border border-dash-border bg-dash-surface overflow-hidden shadow-card transition-all duration-500"
+      className="rounded-[14px] border border-border bg-(--surface) overflow-hidden shadow-(--card-shadow) transition-all duration-500"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(16px)",
@@ -48,47 +49,59 @@ export default function MachineCard({ machine, index }: MachineCardProps) {
       <div className="px-5.5 pt-4.5">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <p className="font-mono text-[20px] font-bold tracking-[0.04em] text-dash-text">
-              {machine.machine_id ?? "—"}
+            <p className="font-mono text-[20px] font-bold tracking-[0.04em] text-(--text)">
+              {machine.machine_id}
             </p>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span
-                className="w-1.75 h-1.75 rounded-full"
-                style={{
-                  background: isIdle ? "var(--text-muted)" : "var(--green)",
-                  boxShadow: isIdle ? "none" : "0 0 8px var(--green-glow)",
-                  animation: isIdle ? "none" : "statusPulse 2s infinite",
-                }}
-              />
-              <span
-                className="font-mono text-[10px] tracking-[0.1em]"
-                style={{ color: isIdle ? "var(--text-muted)" : "var(--green)" }}
-              >
-                {machine.status ?? "—"}
-              </span>
-            </div>
+            <p className="font-sans text-[11px] text-(--text-secondary) mt-0.5">
+              {machine.name}
+            </p>
           </div>
-          <RiskBadge risk={risk} />
+          <RiskBadge category={category} />
         </div>
 
-        <div className="flex items-center gap-5">
+        <div className="flex items-center justify-between">
           <HealthRing score={health} size={90} />
-          <div className="flex-1 min-w-0">
-            <p className="font-mono text-[9px] tracking-[0.14em] text-dash-text-muted mb-1">
-              EXCESS CO₂ TODAY
+          <div className="">
+            <p className="font-mono text-[9px] tracking-[0.14em] text-(--text-muted) mb-1">
+              EXCESS CO₂
             </p>
             <div className="flex items-baseline gap-1">
               <span
                 className="font-mono text-[26px] font-bold leading-none"
                 style={{ color: co2Color }}
               >
-                {co2.toFixed(1)}
+                {co2.toFixed(2)}
               </span>
-              <span className="font-mono text-[11px] text-dash-text-muted">kg</span>
+              <span className="font-mono text-[11px] text-(--text-muted)">kg</span>
             </div>
-            <p className="font-mono text-[9px] tracking-[0.14em] text-dash-text-muted mt-2.5">
-              BEARING STATUS
-            </p>
+            <div className="flex gap-4 mt-2.5">
+              <div>
+                <p className="font-mono text-[8px] tracking-[0.12em] text-(--text-muted)">ENERGY</p>
+                <p className="font-mono text-[12px] font-semibold text-(--cyan)">
+                  {machine.total_energy_kwh.toFixed(1)} <span className="text-(--text-muted) font-normal text-[10px]">kWh</span>
+                </p>
+              </div>
+              <div>
+                <p className="font-mono text-[8px] tracking-[0.12em] text-(--text-muted)">CURRENT</p>
+                <p className="font-mono text-[12px] font-semibold text-(--text)">
+                  {machine.avg_current_A.toFixed(1)} <span className="text-(--text-muted) font-normal text-[10px]">A</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Insights */}
+            {machine.insights.length > 0 && (
+              <div className="flex gap-1 flex-wrap mt-2">
+                {machine.insights.map((insight) => (
+                  <span
+                    key={insight}
+                    className="font-mono text-[8px] tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-(--amber-bg) text-(--amber) border border-(--amber)"
+                  >
+                    {insight}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

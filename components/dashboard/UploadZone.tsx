@@ -296,21 +296,19 @@ export default function UploadZone({ onComplete }: UploadZoneProps) {
           {file && (
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-mono text-[10px] font-bold border"
-                    style={{ background: "var(--cyan-bg)", color: "var(--cyan)", borderColor: "var(--cyan)" }}
-                  >
-                    CSV
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-mono text-[12px] font-medium truncate" style={{ color: "var(--text)" }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="w-8 h-8 rounded-lg flex items-center justify-center font-mono text-[10px] font-bold border bg-cyan-bg text-(--cyan) border-(--cyan)">CSV</p>
+                    <div >
+                    <p className="font-mono text-[12px] font-medium break-all" style={{ color: "var(--text)" }}>
                       {file.name}
                     </p>
                     <p className="font-mono text-[10px]" style={{ color: "var(--text-muted)" }}>
                       {(file.size / 1024).toFixed(1)} KB
                     </p>
                   </div>
+                  </div>
+                  
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <StatusBadge status={currentStatus} />
