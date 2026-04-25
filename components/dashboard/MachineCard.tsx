@@ -16,7 +16,7 @@ export default function MachineCard({ machine, index }: MachineCardProps) {
   const [visible, setVisible] = useState<boolean>(false);
 
   const isIdle    = machine.status === "IDLE";
-  const co2       = machine.excess_co2_today_kg ?? 0;
+  const co2       = machine.carbon_emissions ?? 0;
   const health    = machine.health_score ?? 0;
   const risk      = machine.bearing_risk ?? "NORMAL";
   const color     = getRiskColor(risk);
@@ -75,7 +75,7 @@ export default function MachineCard({ machine, index }: MachineCardProps) {
           <HealthRing score={health} size={90} />
           <div className="flex-1 min-w-0">
             <p className="font-mono text-[9px] tracking-[0.14em] text-dash-text-muted mb-1">
-              EXCESS CO₂ TODAY
+              CARBON EMISSION
             </p>
             <div className="flex items-baseline gap-1">
               <span

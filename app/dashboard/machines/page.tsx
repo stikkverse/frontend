@@ -110,7 +110,7 @@ export default function MachinesPage() {
           <table className="w-full text-left" style={{ borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--bg-alt)" }}>
-                {["MACHINE ID", "TYPE", "RATED POWER", "ENERGY SOURCE"].map((h) => (
+                {["MACHINE ID", "TYPE", "RATED POWER", "AVG CURRENT"].map((h) => (
                   <th
                     key={h}
                     className="font-mono text-[10px] tracking-[0.12em] px-4 py-3"
@@ -145,13 +145,13 @@ export default function MachinesPage() {
                       
                     </td>
                     <td className="font-sans text-[13px] px-4 py-3" style={{ color: "var(--text-secondary)" }}>
-                      {s.machine_type}
+                      {/* {s.machine_type} */}
                     </td>
                     <td className="font-mono text-[13px] px-4 py-3" style={{ color: "var(--text)" }}>
                       {s.energy_consumption} <span style={{ color: "var(--text-muted)" }}>kW</span>
                     </td>
                     <td className="font-mono text-[10px] tracking-[0.08em] uppercase px-4 py-3" style={{ color: "var(--text-muted)" }}>
-                      {s.energy_source_type}
+                      {s.avg_current}
                     </td>
                   </tr>
                 ))}

@@ -17,7 +17,7 @@ export interface Token {
   access_token: string;
   token_type: string;
   api_key: string | null;
-  mill_id: string | null; 
+  mill_id: string | null;
 }
 
 export interface CurrentUser {
@@ -77,9 +77,10 @@ export interface DashboardSummary {
 export interface DashboardMachine {
   machine_id: string;
   health_score: number;
+  avg_current: number;
   energy_consumption: number;
   bearing_risk: BearingRisk;
-  excess_co2_today_kg: number;
+  carbon_emissions: number;
   status: MachineStatus;
   last_reading_at: string;
 }
@@ -120,7 +121,11 @@ export interface Alert {
 }
 
 // Data / Uploads
-export type ProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type ProcessingStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED";
 
 export interface UploadHistoryItem {
   id: number;
@@ -236,9 +241,9 @@ export interface UserCreate {
 }
 
 export interface MillCreate {
-  mill_id: string;       // required
-  user_id?: number;      // optional
-  email?: string;        // optional
+  mill_id: string; // required
+  user_id?: number; // optional
+  email?: string; // optional
 }
 
 export interface StatsUpdate {
