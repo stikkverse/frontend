@@ -4,14 +4,22 @@ interface RiskBadgeProps {
   category: string;
 }
 
-const CATEGORY_STYLES: Record<string, { color: string; bg: string; pulse: boolean }> = {
-  risk:     { color: "var(--red)",        bg: "var(--red-bg)",    pulse: true },
-  warning:  { color: "var(--amber)",      bg: "var(--amber-bg)",  pulse: false },
-  good:     { color: "var(--green)",      bg: "var(--green-bg)",  pulse: false },
-  idle:     { color: "var(--text-muted)", bg: "var(--bg-alt)",    pulse: false },
+const CATEGORY_STYLES: Record<
+  string,
+  { color: string; bg: string; pulse: boolean }
+> = {
+  critical: { color: "#ff0000", bg: "#ff0000", pulse: true },
+  risk: { color: "var(--red)", bg: "var(--red-bg)", pulse: false },
+  good: { color: "var(--green)", bg: "var(--green-bg)", pulse: false },
+  watch: { color: "var(--amber)", bg: "var(--amber-bg)", pulse: false },
+  idle: { color: "var(--text-muted)", bg: "var(--bg-alt)", pulse: false },
 };
 
-const DEFAULT_STYLE = { color: "var(--text-muted)", bg: "var(--bg-alt)", pulse: false };
+const DEFAULT_STYLE = {
+  color: "var(--text-muted)",
+  bg: "var(--bg-alt)",
+  pulse: false,
+};
 
 export default function RiskBadge({ category }: RiskBadgeProps) {
   const key = category.toLowerCase();
@@ -19,10 +27,9 @@ export default function RiskBadge({ category }: RiskBadgeProps) {
 
   return (
     <div
-      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full"
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-bg"
       style={{
         border: `1px solid ${color}`,
-        background: bg,
         animation: pulse ? "riskPulse 1.5s ease-in-out infinite" : "none",
       }}
     >

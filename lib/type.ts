@@ -83,10 +83,9 @@ export interface DashboardMachine {
 }
 
 export interface MachineSpec {
-  machine_id: string;
-  machine_type: string;
-  rated_power_kw: number;
-  energy_source_type: string;
+  [machine_id: string]: {
+    name: string;
+  };
 }
 
 export interface MachineTrendPoint {

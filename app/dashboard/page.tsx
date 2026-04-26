@@ -1,16 +1,23 @@
 "use client";
 
-import { useDashboardSummary, useDashboardMachines } from "@/hooks/useDashboard";
-import { getRiskColor} from "@/lib/helper";
+import { useState, useMemo, useEffect } from "react";
+import {
+  useDashboardSummary,
+  useDashboardMachines,
+} from "@/hooks/useDashboard";
+import { getRiskColor } from "@/lib/helper";
 import MetricCard from "@/components/dashboard/MetricCard";
 import AlertBanner from "@/components/dashboard/AlertBanner";
 import { useMillSummary } from "@/hooks/useMillSummary";
 import HealthRing from "@/components/dashboard/HealthRing";
+import Pagination from "@/components/ui/pagination";
 import Link from "next/link";
+
+const MACHINES_PER_PAGE = 6;
 
 function MetricSkeleton() {
   return (
-    <div className="relative overflow-hidden rounded-[14px] border border-dash-border bg-(--surface) py-8 px-6 shadow-card lg:w-[20%] md:w-[20%] w-full animate-pulse">
+    <div className="relative overflow-hidden rounded-[14px] border border-(--border) bg-(--surface) py-8 px-6 shadow-(--card-shadow) lg:w-[20%] md:w-[20%] w-full animate-pulse">
       <div className="h-2 w-24 rounded bg-(--bg-alt) mb-4" />
       <div className="h-9 w-32 rounded bg-(--bg-alt)" />
     </div>
@@ -40,14 +47,31 @@ export default function OverviewPage() {
     isPlaceholderData: machinesPlaceholder,
   } = useDashboardMachines();
 
+  const [page, setPage] = useState(1);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const metrics = millData?.summary_metrics;
   const millMachines = millData?.machines ?? [];
 
   const showError = summaryError && isConnectivityError(summaryErrorObj);
-
-  const machinesTotal = summary?.machines_total ?? 0;
+  const machinesTotal = millMachines.length;
   const millName = summary?.mill_name ?? "";
   const isEmpty = !summaryLoading && !showError && machinesTotal === 0;
+
+  const totalPages = Math.ceil(machinesTotal / MACHINES_PER_PAGE);
+  const paginatedMachines = useMemo(
+    () => millMachines.slice((page - 1) * MACHINES_PER_PAGE, page * MACHINES_PER_PAGE),
+    [millMachines, page],
+  );
+
+  // Reset to page 1 if data changes and current page is out of bounds
+  useEffect(() => {
+    if (page > totalPages && totalPages > 0) setPage(1);
+  }, [totalPages, page]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -55,7 +79,7 @@ export default function OverviewPage() {
         <h2 className="font-sans text-[20px] font-bold m-0 text-(--text)">
           Energy &amp; Carbon Summary
         </h2>
-        {millLoading ? (
+        {!mounted || millLoading ? (
           <div className="h-4 w-64 rounded bg-(--bg-alt) animate-pulse mt-1" />
         ) : (
           <p className="font-sans text-[13px] mt-1 text-(--text-secondary)">
@@ -67,16 +91,13 @@ export default function OverviewPage() {
       </div>
 
       {showError && (
-        <div
-          className="rounded-[10px] border p-4 font-mono text-[12px]"
-          style={{ borderColor: "var(--red)", color: "var(--red)", background: "var(--red-bg)" }}
-        >
+        <div className="rounded-[10px] border p-4 font-mono text-[12px] border-(--red) text-(--red) bg-(--red-bg)">
           ⚠ Failed to load dashboard data. Check your connection and refresh.
         </div>
       )}
 
       <div className="flex gap-5 items-center flex-wrap">
-        {summaryLoading ? (
+        {!mounted || summaryLoading ? (
           <>
             <MetricSkeleton />
             <MetricSkeleton />
@@ -133,16 +154,12 @@ export default function OverviewPage() {
           Machine Health at a Glance
         </h3>
 
-        {millLoading ? (
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}
-          >
-            {Array.from({ length: 5 }).map((_, i) => (
+        {!mounted || millLoading ? (
+          <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: MACHINES_PER_PAGE }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-[10px] border bg-(--surface) p-4 animate-pulse"
-                style={{ borderColor: "var(--border)" }}
+                className="rounded-[10px] border border-(--border) bg-(--surface) p-4 animate-pulse"
               >
                 <div className="h-4 w-16 rounded bg-(--bg-alt) mb-3" />
                 <div className="h-8 w-12 rounded bg-(--bg-alt)" />
@@ -150,10 +167,7 @@ export default function OverviewPage() {
             ))}
           </div>
         ) : millMachines.length === 0 ? (
-          <div
-            className="rounded-[14px] border border-dashed p-12 text-center"
-            style={{ borderColor: "var(--border)" }}
-          >
+          <div className="rounded-[14px] border border-dashed border-(--border) p-12 text-center">
             <p className="font-mono text-[12px] tracking-widest text-(--text-muted) mb-2">
               NO MACHINES REGISTERED
             </p>
@@ -162,43 +176,49 @@ export default function OverviewPage() {
             </p>
           </div>
         ) : (
-          <Link href="/dashboard/machines">
-            <div className="flex justify-between items-center flex-wrap">
-              {millMachines.map((m) => {
-                
+          <>
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+              {paginatedMachines.map((m) => {
                 const rc = getRiskColor(m.bearing_risk ?? "NORMAL");
                 return (
-                  <div
+                  <Link
                     key={m.machine_id}
-                    className="rounded-[10px] border bg-(--surface) p-4 lg:w-[33%] md:w-[33%] w-full"
+                    href={`/dashboard/machines/${m.machine_id}`}
+                    className="no-underline block rounded-[10px] border bg-(--surface) p-4 transition-all duration-200 hover:border-(--cyan) hover:shadow-[0_0_16px_var(--cyan-glow)]"
                     style={{
                       borderColor: "var(--border)",
                       borderTop: `3px solid ${rc}`,
                       boxShadow: "var(--card-shadow)",
                     }}
                   >
-                    <p className="font-mono text-[14px] font-bold" style={{ color: "var(--text)" }}>
+                    <p className="font-mono text-[14px] font-bold text-(--text)">
                       {m.machine_id}
                     </p>
-                    <p className="font-mono text-[10px] text-(--text)">
+                    <p className="font-mono text-[10px] text-(--text-secondary)">
                       {m.name}
                     </p>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mt-2">
                       <div>
                         <p className="font-mono text-[9px] tracking-widest mt-0.5 text-(--text-muted)">
-                          {m.bearing_risk ?? "NORMAL"}
+                          RUN HOURS
                         </p>
-                        <p className="text-[13px] text-cyan-300">
+                        <p className="font-mono text-[13px] text-(--cyan)">
                           {m.run_hours} Hours
                         </p>
                       </div>
                       <HealthRing score={m.health_score ?? 0} size={90} />
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
-          </Link>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              className="mt-4"
+            />
+          </>
         )}
       </div>
     </div>

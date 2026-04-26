@@ -295,11 +295,24 @@ export default function UploadZone({ onComplete }: UploadZoneProps) {
 
           {file && (
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center justify-between">
-                  <div>
+              <div className="">
+                <div className="">
+                  <div className="flex items-center justify-between">
                     <p className="w-8 h-8 rounded-lg flex items-center justify-center font-mono text-[10px] font-bold border bg-cyan-bg text-(--cyan) border-(--cyan)">CSV</p>
-                    <div >
+                    <div className="flex items-center gap-2 shrink-0">
+                  <StatusBadge status={currentStatus} />
+                  {!isLocked && !taskId && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); reset(); }}
+                      className="font-mono text-[9px] p-2 rounded cursor-pointer transition-colors duration-150 border text-text-muted bg-transparent border-border"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                  </div>
+
+                    <div className="my-2">
                     <p className="font-mono text-[12px] font-medium break-all" style={{ color: "var(--text)" }}>
                       {file.name}
                     </p>
@@ -307,21 +320,9 @@ export default function UploadZone({ onComplete }: UploadZoneProps) {
                       {(file.size / 1024).toFixed(1)} KB
                     </p>
                   </div>
-                  </div>
                   
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <StatusBadge status={currentStatus} />
-                  {!isLocked && !taskId && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); reset(); }}
-                      className="font-mono text-[9px] px-2 py-1 rounded cursor-pointer transition-colors duration-150 border"
-                      style={{ color: "var(--text-muted)", background: "transparent", borderColor: "var(--border)" }}
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
+                
               </div>
 
               {(isUploading || taskId) && (
