@@ -39,7 +39,7 @@ export default function DashboardLayout({
         </div>
 
         <div
-          className="flex-1 mt-8 transition-all duration-500 bg-(--bg)"
+          className="flex-1 mt-8 transition-all duration-500"
           style={{
             opacity: loaded ? 1 : 0,
             transform: loaded ? "translateY(0)" : "translateY(10px)",

@@ -210,8 +210,6 @@ export default function TeamPage() {
             : `${teammates.length} team member${teammates.length !== 1 ? "s" : ""}${currentUser ? ` in ${currentUser.mill_name}` : ""}`}
         </p>
       </div>
-
-      {/* Invite form */}
       <div
         className="rounded-[14px] border p-5 max-w-[600px]"
         style={{ borderColor: "var(--border)", background: "var(--surface)", boxShadow: "var(--card-shadow)" }}
@@ -254,12 +252,11 @@ export default function TeamPage() {
         </div>
       </div>
 
-      {/* Active Members */}
       <div>
         <h3 className="font-sans text-base font-semibold mb-3" style={{ color: "var(--text)" }}>
           Active Members
         </h3>
-        <div className="overflow-x-auto rounded-[12px] border" style={{ borderColor: "var(--border)" }}>
+        <div className="overflow-x-auto rounded-[12px] border bg-(--bg)" style={{ borderColor: "var(--border)" }}>
           <table className="w-full text-left" style={{ borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--bg-alt)" }}>
@@ -281,7 +278,6 @@ export default function TeamPage() {
         </div>
       </div>
 
-      {/* Pending Invitations */}
       {(invitationsLoading || invitations.length > 0) && (
         <div>
           <h3 className="font-sans text-base font-semibold mb-3" style={{ color: "var(--text)" }}>

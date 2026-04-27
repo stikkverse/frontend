@@ -5,7 +5,7 @@ import type { MillMachine, BearingRisk } from "@/lib/type";
 import RiskBadge from "./RiskBadge";
 import HealthRing from "./HealthRing";
 import PulseLine from "./PulseLine";
-import Link from "next/link";
+import { getInsightClass } from "@/lib/helper";
 
 interface MachineCardProps {
   machine: MillMachine;
@@ -30,12 +30,6 @@ const RISK_ACCENT: Record<BearingRisk, { line: string; glow: string; pulse: stri
   },
 };
 
-function getHealthColorClass(score: number): string {
-  if (score >= 80) return "text-(--green)";
-  if (score >= 60) return "text-(--amber)";
-  return "text-(--red)";
-}
-
 function getHealthColorVar(score: number): string {
   if (score >= 80) return "var(--green)";
   if (score >= 60) return "var(--amber)";
@@ -48,18 +42,7 @@ function getCO2ColorClass(co2: number): string {
   return "text-(--red)";
 }
 
-function getInsightClass(insight: string): string {
-  const lower = insight.toLowerCase();
-  if (lower.includes("optimal") || lower.includes("efficient"))
-    return "bg-(--green-bg) text-(--green) border-(--green)";
-  if (lower.includes("slight") || lower.includes("drift"))
-    return "bg-(--amber-bg) text-(--amber) border-(--amber)";
-  if (lower.includes("high") || lower.includes("spike") || lower.includes("critical"))
-    return "bg-(--red-bg) text-(--red) border-(--red)";
-  if (lower.includes("low") || lower.includes("spike") || lower.includes("critical") || lower.includes("health"))
-    return "bg-(--red-bg) text-(--red) border-(--red)";
-  return "bg-(--amber-bg) text-(--amber) border-(--amber)";
-}
+
 
 export default function MachineCard({ machine, index }: MachineCardProps) {
   const [visible, setVisible] = useState(false);

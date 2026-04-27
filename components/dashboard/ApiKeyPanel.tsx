@@ -19,7 +19,7 @@ export default function ApiKeyPanel({ apiKey, uploadCount, lastUpload }: ApiKeyP
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 bg-(--bg)">
       <div className="rounded-[14px] border border-dash-border bg-dash-surface p-[22px_24px] shadow-card">
         <p className="font-mono text-[10px] tracking-[0.14em] text-dash-text-muted mb-3.5">
           YOUR API KEY
@@ -27,8 +27,8 @@ export default function ApiKeyPanel({ apiKey, uploadCount, lastUpload }: ApiKeyP
 
         <div className="flex items-center gap-2 rounded-[10px] border border-dash-border bg-dash-bg-alt p-3 flex-wrap">
           <span
-            className="w-1.75 h-1.75 rounded-full shrink-0"
-            style={{ background: "var(--cyan)", boxShadow: "0 0 6px var(--cyan-glow)" }}
+            className="w-1.75 h-1.75 rounded-full shrink-0 bg-(--cyan)"
+            style={{ boxShadow: "0 0 6px var(--cyan-glow)" }}
           />
           <code className="font-mono text-[13px] flex-1 overflow-hidden text-ellipsis whitespace-nowrap min-w-30 text-dash-cyan">
             {revealed ? apiKey : "fsa_B_••••••••••••"}

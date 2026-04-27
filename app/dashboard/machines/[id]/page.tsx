@@ -14,8 +14,7 @@ import {
   getHealthLabel,
   getCO2Color,
   getCategoryColor,
-  getInsightStyle,
-  getInsightIcon,
+  getInsightClass
 } from "@/lib/helper";
 
 function PenaltyBar({
@@ -93,7 +92,7 @@ function PageSkeleton() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-[12px] border border-(--border) bg-(--surface) p-4 h-20"
+            className="rounded-[12px] border border-border bg-(--surface) p-4 h-20"
           />
         ))}
       </div>
@@ -110,7 +109,6 @@ export default function MachineDetailPage() {
   const router = useRouter();
   const { data: millData, isLoading } = useMillSummary();
   const [mounted, setMounted] = useState(false);
-  console.log(millData);
 
   useEffect(() => {
     setMounted(true);
@@ -208,13 +206,12 @@ export default function MachineDetailPage() {
             INSIGHTS &amp; DIAGNOSTICS
           </p>
         {machine.insights.length > 0 ? (
-              <div className="flex flex-col gap-3 mb-4">
+              <div className="flex gap-3 mb-4">
                 {machine.insights.map((insight) => (
                   <div
                     key={insight}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border ${getInsightStyle(insight)}`}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border ${getInsightClass(insight)}`}
                   >
-                    <span className="text-sm">{getInsightIcon(insight)}</span>
                     <span className="font-mono text-[11px] font-semibold tracking-[0.04em]">
                       {insight}
                     </span>

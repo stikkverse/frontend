@@ -25,7 +25,7 @@ export const getCategoryColor = (category: string): string => {
   return "var(--amber)";
 };
 
-export const getInsightStyle = (insight: string): string => {
+export const  getInsightClass = (insight: string): string => {
   const lower = insight.toLowerCase();
   if (lower.includes("optimal") || lower.includes("efficient"))
     return "bg-(--green-bg) text-(--green) border-(--green)";
@@ -33,9 +33,10 @@ export const getInsightStyle = (insight: string): string => {
     return "bg-(--amber-bg) text-(--amber) border-(--amber)";
   if (lower.includes("high") || lower.includes("spike") || lower.includes("critical"))
     return "bg-(--red-bg) text-(--red) border-(--red)";
+  if (lower.includes("low") || lower.includes("spike") || lower.includes("critical") || lower.includes("health"))
+    return "bg-(--red-bg) text-(--red) border-(--red)";
   return "bg-(--amber-bg) text-(--amber) border-(--amber)";
-};
-
+}
 export const getInsightIcon = (insight: string): string => {
   const lower = insight.toLowerCase();
   if (lower.includes("optimal") || lower.includes("efficient")) return "✓";

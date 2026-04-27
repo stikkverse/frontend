@@ -139,7 +139,7 @@ export default function MachinesPage() {
           <h3 className="font-sans text-base font-semibold mb-3 text-(--text)">
             Machine Specifications
           </h3>
-          <div className="overflow-x-auto rounded-[12px] border border-(--border)">
+          <div className="overflow-x-auto rounded-[12px] border border-border bg-(--bg)">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-(--bg-alt)">

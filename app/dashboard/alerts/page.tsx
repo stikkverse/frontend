@@ -29,7 +29,7 @@ function AlertCard({
 
   return (
     <div
-      className="rounded-[14px] border overflow-hidden transition-all duration-300"
+      className="rounded-[14px] border overflow-hidden transition-all duration-300 lg:w-[32%] md:w-[32%] w-full"
       style={{
         borderColor: alert.acknowledged ? "var(--border)" : color,
         background: "var(--surface)",
@@ -183,8 +183,6 @@ export default function AlertsPage() {
                 : `${activeCount} active alert${activeCount !== 1 ? "s" : ""} requiring attention`}
           </p>
         </div>
-
-        {/* Filter tabs */}
         <div
           className="flex gap-1 p-1 rounded-lg border"
           style={{ borderColor: "var(--border)", background: "var(--bg-alt)" }}
@@ -254,7 +252,7 @@ export default function AlertsPage() {
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col lg:flex-row md:flex-row flex-wrap gap-5">
           {filtered.map((alert) => (
             <AlertCard
               key={alert.id}
