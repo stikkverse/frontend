@@ -1,10 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { useAlerts, useAcknowledgeAlert } from "@/hooks/useAlerts";
-import type { Alert } from "@/lib/type";
+import {
+  useAlerts,
+  useAlertHistory,
+  useAcknowledgeAlert,
+  useResolveAlert,
+} from "@/hooks/useAlerts";
+import type { ExtendedAlert } from "@/hooks/useAlerts";
+import type { Alert, ResolutionCategory } from "@/lib/type";
 import { getRiskColor, getRiskBg } from "@/lib/helper";
 import type { BearingRisk } from "@/lib/type";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 function formatRelativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -15,14 +27,135 @@ function formatRelativeTime(dateStr: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+// Updated to match spec enum exactly
+const RESOLUTION_CATEGORIES: { value: ResolutionCategory; label: string }[] = [
+  { value: "hardware_fixed", label: "Hardware Fixed" },
+  { value: "software_fix",   label: "Software Fix" },
+  { value: "false_alarm",    label: "False Alarm" },
+  { value: "maintenance",    label: "Maintenance" },
+  { value: "other",          label: "Other" },
+];
+
+//Resolve Modal 
+
+function ResolveModal({
+  alert,
+  open,
+  onClose,
+  onSubmit,
+  isPending,
+}: {
+  alert: Alert | null;
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (note: string, category: ResolutionCategory) => void;
+  isPending: boolean;
+}) {
+  const [note, setNote] = useState("");
+  const [category, setCategory] = useState<ResolutionCategory>("hardware_fixed");
+
+  const handleSubmit = () => {
+    onSubmit(note.trim(), category);
+  };
+
+  const handleOpenChange = (v: boolean) => {
+    if (!v) { setNote(""); setCategory("hardware_fixed"); onClose(); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogTitle className="font-mono text-[14px] tracking-widest" style={{ color: "var(--text)" }}>
+          RESOLVE ALERT
+        </DialogTitle>
+        <DialogDescription className="font-sans text-[13px]" style={{ color: "var(--text-secondary)" }}>
+          {alert ? `Machine ${alert.machine_id} — ${(alert.alert_type ?? "").replace(/_/g, " ")}` : ""}
+        </DialogDescription>
+
+        <div className="flex flex-col gap-4 mt-2">
+          <div>
+            <p className="font-mono text-[10px] tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>
+              RESOLUTION CATEGORY
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {RESOLUTION_CATEGORIES.map((c) => (
+                <button
+                  key={c.value}
+                  onClick={() => setCategory(c.value)}
+                  className="font-mono text-[10px] tracking-[0.05em] px-3 py-2 rounded-lg border text-left transition-all duration-150 cursor-pointer"
+                  style={{
+                    background: category === c.value ? "var(--cyan-bg)" : "var(--bg-alt)",
+                    borderColor: category === c.value ? "var(--cyan)" : "var(--border)",
+                    color: category === c.value ? "var(--cyan)" : "var(--text-muted)",
+                    fontWeight: category === c.value ? 600 : 400,
+                  }}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="font-mono text-[10px] tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>
+              RESOLUTION NOTE <span style={{ color: "var(--text-muted)" }}>(optional)</span>
+            </p>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Briefly describe what was done to resolve this alert…"
+              rows={3}
+              className="w-full font-sans text-[13px] px-3 py-2.5 rounded-lg border resize-none outline-none transition-colors duration-150"
+              style={{ background: "var(--bg-alt)", borderColor: "var(--border)", color: "var(--text)" }}
+              onFocus={(e) => (e.target.style.borderColor = "var(--cyan)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
+            />
+          </div>
+
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={onClose}
+              disabled={isPending}
+              className="font-mono text-[11px] tracking-widest px-4 py-2 rounded-lg border cursor-pointer transition-all duration-150 hover:opacity-80 disabled:opacity-50"
+              style={{ borderColor: "var(--border)", color: "var(--text-muted)", background: "var(--bg-alt)" }}
+            >
+              CANCEL
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isPending}
+              className="font-mono text-[11px] tracking-widest px-4 py-2 rounded-lg border cursor-pointer transition-all duration-150 hover:opacity-90 disabled:opacity-50"
+              style={{
+                background: "linear-gradient(135deg, var(--green), #22c55e)",
+                borderColor: "var(--green)",
+                color: "white",
+              }}
+            >
+              {isPending ? "RESOLVING…" : "MARK RESOLVED"}
+            </button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+//Alert Card 
+
 function AlertCard({
   alert,
   onAcknowledge,
-  isPending,
+  onResolve,
+  isAckPending,
+  isResolvePending,
+  isHistory = false,
 }: {
-  alert: Alert;
+  alert: ExtendedAlert;
   onAcknowledge: (id: number) => void;
-  isPending: boolean;
+  onResolve: (alert: ExtendedAlert) => void;
+  isAckPending: boolean;
+  isResolvePending: boolean;
+  isHistory?: boolean;
 }) {
   const color = getRiskColor(alert.severity as BearingRisk);
   const bg = getRiskBg(alert.severity as BearingRisk);
@@ -31,27 +164,30 @@ function AlertCard({
     <div
       className="rounded-[14px] border overflow-hidden transition-all duration-300 lg:w-[32%] md:w-[32%] w-full"
       style={{
-        borderColor: alert.acknowledged ? "var(--border)" : color,
+        borderColor: isHistory ? "var(--green)" : alert.acknowledged ? "var(--border)" : color,
         background: "var(--surface)",
         boxShadow: "var(--card-shadow)",
-        opacity: alert.acknowledged ? 0.7 : 1,
+        opacity: isHistory ? 0.7 : alert.acknowledged ? 0.85 : 1,
       }}
     >
-      {!alert.acknowledged && (
-        <div
-          className="h-0.75"
-          style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
-        />
-      )}
+      {isHistory ? (
+        <div className="h-0.75" style={{ background: "linear-gradient(90deg, transparent, var(--green), transparent)" }} />
+      ) : !alert.acknowledged ? (
+        <div className="h-0.75" style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
+      ) : null}
+
       <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-              style={{ background: bg, border: `1.5px solid ${color}` }}
+              style={{
+                background: isHistory ? "var(--green-bg)" : bg,
+                border: `1.5px solid ${isHistory ? "var(--green)" : color}`,
+              }}
             >
               <span className="text-sm">
-                {alert.severity === "HIGH" ? "⚠" : alert.severity === "WARNING" ? "◈" : "ℹ"}
+                {isHistory ? "✓" : alert.severity === "HIGH" ? "⚠" : alert.severity === "WARNING" ? "◈" : "ℹ"}
               </span>
             </div>
             <div>
@@ -61,9 +197,13 @@ function AlertCard({
                 </span>
                 <span
                   className="px-2 py-0.5 rounded-full font-mono text-[9px] font-semibold tracking-[0.06em]"
-                  style={{ background: bg, color, border: `1px solid ${color}` }}
+                  style={{
+                    background: isHistory ? "var(--green-bg)" : bg,
+                    color: isHistory ? "var(--green)" : color,
+                    border: `1px solid ${isHistory ? "var(--green)" : color}`,
+                  }}
                 >
-                  {alert.severity}
+                  {isHistory ? "RESOLVED" : alert.severity}
                 </span>
               </div>
               <p className="font-mono text-[9px] tracking-widest mt-0.5" style={{ color: "var(--text-muted)" }}>
@@ -73,43 +213,50 @@ function AlertCard({
             </div>
           </div>
 
-          {!alert.acknowledged ? (
-            <button
-              onClick={() => onAcknowledge(alert.id)}
-              disabled={isPending}
-              className="shrink-0 font-mono text-[10px] font-semibold tracking-[0.06em] px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 hover:opacity-80 disabled:opacity-50"
-              style={{
-                background: "var(--cyan-bg)",
-                border: "1px solid var(--cyan)",
-                color: "var(--cyan)",
-              }}
-            >
-              {isPending ? "..." : "ACKNOWLEDGE"}
-            </button>
-          ) : (
-            <span
-              className="shrink-0 font-mono text-[9px] tracking-[0.08em] px-2 py-1 rounded-md"
-              style={{ color: "var(--green)", background: "var(--green-bg)" }}
-            >
-              ✓ ACK&apos;D
-            </span>
-          )}
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            {isHistory ? (
+              <span className="font-mono text-[9px] tracking-[0.08em] px-2 py-1 rounded-md" style={{ color: "var(--green)", background: "var(--green-bg)" }}>
+                ✓ RESOLVED
+              </span>
+            ) : (
+              <>
+                {!alert.acknowledged && (
+                  <button
+                    onClick={() => onAcknowledge(alert.id)}
+                    disabled={isAckPending}
+                    className="font-mono text-[10px] font-semibold tracking-[0.06em] px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 hover:opacity-80 disabled:opacity-50"
+                    style={{ background: "var(--cyan-bg)", border: "1px solid var(--cyan)", color: "var(--cyan)" }}
+                  >
+                    {isAckPending ? "…" : "ACKNOWLEDGE"}
+                  </button>
+                )}
+                {alert.acknowledged && (
+                  <span className="font-mono text-[9px] tracking-[0.08em] px-2 py-1 rounded-md" style={{ color: "var(--amber)", background: "var(--amber-bg)" }}>
+                    IN PROGRESS
+                  </span>
+                )}
+                <button
+                  onClick={() => onResolve(alert)}
+                  disabled={isResolvePending}
+                  className="font-mono text-[10px] font-semibold tracking-[0.06em] px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 hover:opacity-80 disabled:opacity-50"
+                  style={{ background: "var(--green-bg)", border: "1px solid var(--green)", color: "var(--green)" }}
+                >
+                  {isResolvePending ? "…" : "RESOLVE"}
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         <p className="font-sans text-[13px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
           {alert.message}
         </p>
 
-        {alert.acknowledged && alert.acknowledged_by && (
+        {alert.acknowledged && !isHistory && alert.acknowledged_by && (
           <p className="font-mono text-[10px] mt-2" style={{ color: "var(--text-muted)" }}>
             Acknowledged by {alert.acknowledged_by}
             {alert.acknowledged_at
-              ? ` on ${new Date(alert.acknowledged_at).toLocaleString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}`
+              ? ` on ${new Date(alert.acknowledged_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
               : ""}
           </p>
         )}
@@ -120,10 +267,7 @@ function AlertCard({
 
 function AlertSkeleton() {
   return (
-    <div
-      className="rounded-[14px] border p-5 animate-pulse"
-      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
-    >
+    <div className="rounded-[14px] border p-5 animate-pulse" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
       <div className="flex items-start gap-3">
         <div className="w-8 h-8 rounded-full bg-(--bg-alt) shrink-0" />
         <div className="flex-1">
@@ -135,26 +279,51 @@ function AlertSkeleton() {
   );
 }
 
-type FilterTab = "all" | "active" | "acknowledged";
+type FilterTab = "active" | "acknowledged" | "resolved" | "all";
 
 export default function AlertsPage() {
-  const { data: alerts = [], isLoading, isError, error } = useAlerts();
-  const { mutate: acknowledge, isPending } = useAcknowledgeAlert();
+  const { data: activeAlerts = [], isLoading, isError, error } = useAlerts();
+  const { data: historyAlerts = [], isLoading: historyLoading } = useAlertHistory({ limit: 50 });
+  const { mutate: acknowledge, isPending: isAckPending } = useAcknowledgeAlert();
+  const { mutate: resolve, isPending: isResolvePending } = useResolveAlert();
 
-  
   const [filter, setFilter] = useState<FilterTab>("active");
+  const [resolveTarget, setResolveTarget] = useState<ExtendedAlert | null>(null);
 
-  const activeAlerts = alerts.filter((a) => !a.acknowledged);
-  const acknowledgedAlerts = alerts.filter((a) => a.acknowledged);
-  const activeCount = activeAlerts.length;
+  const handleAcknowledge = (id: number) => acknowledge(id);
 
+  const handleResolveSubmit = (note: string, category: ResolutionCategory) => {
+    if (!resolveTarget) return;
+    resolve(
+      {
+        alertId: resolveTarget.id,
+        payload: {
+          resolution_note: note || null,
+          resolution_category: category,
+        },
+      },
+      { onSettled: () => setResolveTarget(null) },
+    );
+  };
 
-  const filtered: Alert[] =
-    filter === "active"
-      ? activeAlerts
-      : filter === "acknowledged"
-        ? acknowledgedAlerts
-        : alerts;
+  const extAlerts = activeAlerts as ExtendedAlert[];
+
+  // Active feed from server
+  const unacknowledgedAlerts = extAlerts.filter((a) => !a.acknowledged);
+  const acknowledgedAlerts   = extAlerts.filter((a) => a.acknowledged);
+  const activeCount          = unacknowledgedAlerts.length;
+
+  // Resolved tab pulls from history endpoint (separate server data)
+  const resolvedAlerts = historyAlerts as ExtendedAlert[];
+
+  const filtered: ExtendedAlert[] =
+    filter === "active"       ? unacknowledgedAlerts
+    : filter === "acknowledged" ? acknowledgedAlerts
+    : filter === "resolved"     ? resolvedAlerts
+    : [...extAlerts, ...resolvedAlerts]; 
+
+  const isFilteredHistory = filter === "resolved";
+  const isLoading_ = filter === "resolved" ? historyLoading : isLoading;
 
   const showError = isError && (() => {
     const status = (error as { response?: { status?: number } })?.response?.status;
@@ -163,9 +332,17 @@ export default function AlertsPage() {
   })();
 
   const tabCounts: Record<FilterTab, number> = {
-    all: alerts.length,
-    active: activeCount,
+    active:       activeCount,
     acknowledged: acknowledgedAlerts.length,
+    resolved:     resolvedAlerts.length,
+    all:          extAlerts.length + resolvedAlerts.length,
+  };
+
+  const TAB_BADGE: Record<FilterTab, { color: string; bg: string; border: string }> = {
+    active:       { color: "var(--red)",       bg: "var(--red-bg)",   border: "1px solid var(--red)" },
+    acknowledged: { color: "var(--amber)",      bg: "var(--amber-bg)", border: "1px solid var(--amber)" },
+    resolved:     { color: "var(--green)",      bg: "var(--green-bg)", border: "1px solid var(--green)" },
+    all:          { color: "var(--text-muted)", bg: "var(--bg-alt)",   border: "1px solid var(--border)" },
   };
 
   return (
@@ -178,16 +355,14 @@ export default function AlertsPage() {
           <p className="font-sans text-[13px] mt-1" style={{ color: "var(--text-secondary)" }}>
             {isLoading
               ? "Loading alerts..."
-              : alerts.length === 0
+              : extAlerts.length === 0 && resolvedAlerts.length === 0
                 ? "No alerts yet — alerts will appear once machine data is uploaded"
                 : `${activeCount} active alert${activeCount !== 1 ? "s" : ""} requiring attention`}
           </p>
         </div>
-        <div
-          className="flex gap-1 p-1 rounded-lg border"
-          style={{ borderColor: "var(--border)", background: "var(--bg-alt)" }}
-        >
-          {(["all", "active", "acknowledged"] as FilterTab[]).map((f) => (
+
+        <div className="flex gap-1 p-1 rounded-lg border" style={{ borderColor: "var(--border)", background: "var(--bg-alt)" }}>
+          {(["active", "acknowledged", "resolved", "all"] as FilterTab[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -200,14 +375,7 @@ export default function AlertsPage() {
             >
               {f}
               {tabCounts[f] > 0 && (
-                <span
-                  className="px-1.5 py-0.5 rounded-full text-[8px] font-bold"
-                  style={{
-                    background: f === "active" ? "var(--red-bg)" : "var(--bg-alt)",
-                    color: f === "active" ? "var(--red)" : "var(--text-muted)",
-                    border: f === "active" ? "1px solid var(--red)" : "1px solid var(--border)",
-                  }}
-                >
+                <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold" style={TAB_BADGE[f]}>
                   {tabCounts[f]}
                 </span>
               )}
@@ -217,38 +385,28 @@ export default function AlertsPage() {
       </div>
 
       {showError && (
-        <div
-          className="rounded-[10px] border p-4 font-mono text-[12px]"
-          style={{ borderColor: "var(--red)", color: "var(--red)", background: "var(--red-bg)" }}
-        >
+        <div className="rounded-[10px] border p-4 font-mono text-[12px]" style={{ borderColor: "var(--red)", color: "var(--red)", background: "var(--red-bg)" }}>
           ⚠ Failed to load alerts. Retrying automatically…
         </div>
       )}
 
-      {isLoading ? (
+      {isLoading_ ? (
         <div className="flex flex-col gap-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <AlertSkeleton key={i} />
-          ))}
+          {Array.from({ length: 3 }).map((_, i) => <AlertSkeleton key={i} />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div
-          className="rounded-[14px] border border-dashed p-12 text-center"
-          style={{ borderColor: "var(--border)" }}
-        >
+        <div className="rounded-[14px] border border-dashed p-12 text-center" style={{ borderColor: "var(--border)" }}>
           <p className="font-mono text-[12px] tracking-widest text-(--text-muted) mb-2">
-            {filter === "active"
-              ? "NO ACTIVE ALERTS"
-              : filter === "acknowledged"
-                ? "NO ACKNOWLEDGED ALERTS"
-                : "NO ALERTS YET"}
+            {filter === "active" ? "NO ACTIVE ALERTS"
+              : filter === "acknowledged" ? "NO IN-PROGRESS ALERTS"
+              : filter === "resolved" ? "NO RESOLVED ALERTS"
+              : "NO ALERTS YET"}
           </p>
           <p className="font-sans text-[13px] text-(--text-secondary)">
-            {filter === "all"
-              ? "Alerts will appear here once your machines start reporting data."
-              : filter === "active"
-                ? "All clear — no active alerts at the moment."
-                : "No alerts have been acknowledged yet."}
+            {filter === "active" ? "All clear — no active alerts at the moment."
+              : filter === "acknowledged" ? "No alerts are currently being investigated."
+              : filter === "resolved" ? "Resolved alerts will appear here as an auditable history."
+              : "Alerts will appear here once your machines start reporting data."}
           </p>
         </div>
       ) : (
@@ -257,12 +415,23 @@ export default function AlertsPage() {
             <AlertCard
               key={alert.id}
               alert={alert}
-              onAcknowledge={acknowledge}
-              isPending={isPending}
+              onAcknowledge={handleAcknowledge}
+              onResolve={(a) => setResolveTarget(a)}
+              isAckPending={isAckPending}
+              isResolvePending={isResolvePending}
+              isHistory={isFilteredHistory}
             />
           ))}
         </div>
       )}
+
+      <ResolveModal
+        alert={resolveTarget}
+        open={Boolean(resolveTarget)}
+        onClose={() => setResolveTarget(null)}
+        onSubmit={handleResolveSubmit}
+        isPending={isResolvePending}
+      />
     </div>
   );
 }

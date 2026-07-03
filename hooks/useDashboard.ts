@@ -3,19 +3,19 @@ import { dashboardApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import type { DashboardSummary, DashboardMachine, MachineSpec } from "@/lib/type";
 
+// Updated to match DashboardSummaryResponse schema
 const EMPTY_SUMMARY: DashboardSummary = {
-  mill_id: "",
-  mill_name: "",
-  date: "",
-  total_excess_co2_kg: 0,
-  avoidable_cost_usd: 0,
-  machines_total: 0,
-  machines_running: 0,
-  machines_idle: 0,
-  last_updated: "",
+  total_energy_kwh: 0,
+  total_co2_kg: 0,
+  machine_count: 0,
+  active_alerts_count: 0,
+  date: null,
 };
 
-/** GET /api/v1/dashboard/summary */
+/**
+ * GET /api/v1/dashboard/summary?date={date}
+ * @param date optional YYYY-MM-DD, defaults to today on backend
+ */
 export function useDashboardSummary(date?: string) {
   return useQuery({
     queryKey: queryKeys.dashboard.summary(date),
@@ -27,7 +27,7 @@ export function useDashboardSummary(date?: string) {
   });
 }
 
-/** GET /api/v1/dashboard/machines */
+/**GET /api/v1/dashboard/machines*/
 export function useDashboardMachines() {
   return useQuery({
     queryKey: queryKeys.dashboard.machines(),
@@ -39,7 +39,7 @@ export function useDashboardMachines() {
   });
 }
 
-/** GET /api/v1/dashboard/machine-specs */
+/**GET /api/v1/dashboard/machine-specs*/
 export function useMachineSpecs() {
   return useQuery({
     queryKey: queryKeys.dashboard.machineSpecs(),
@@ -53,13 +53,13 @@ export function useMachineSpecs() {
   });
 }
 
-/** GET /api/v1/dashboard/machines/{machine_id}/trends */
+/**GET /api/v1/dashboard/machines/{machine_id}/trends?range={range}*/
 export function useMachineTrends(machineId: string, range: string = "7d") {
   return useQuery({
     queryKey: queryKeys.dashboard.machineTrends(machineId, range),
     queryFn: () => dashboardApi.getMachineTrends(machineId, range),
     enabled: Boolean(machineId),
     staleTime: 5 * 60_000,
-    select: (data) => data ?? null,
+    select: (data) => (Array.isArray(data) ? data : []),
   });
 }

@@ -1,6 +1,7 @@
 import axiosInstance from "./axiosInstance";
 import type {
   Alert,
+  AlertResolvePayload,
   Baseline,
   BaselineUpdate,
   CurrentUser,
@@ -22,7 +23,7 @@ import type {
   InvitationResponse,
 } from "./type";
 
-// Dashboard   — x-api-key secured
+
 export const dashboardApi = {
   /** GET /api/v1/dashboard/summary?date={date} */
   getSummary: async (date?: string): Promise<DashboardSummary> => {
@@ -49,7 +50,7 @@ export const dashboardApi = {
     return data;
   },
 
-  /** GET /api/v1/dashboard/machines/{machine_id}/trends?range={range} */
+  /** GET /api/v1/dashboard/machines/{machine_id}/trends?range={range}*/
   getMachineTrends: async (
     machineId: string,
     range: string = "7d",
@@ -62,11 +63,24 @@ export const dashboardApi = {
   },
 };
 
+
 // Alerts   — x-api-key secured
 export const alertsApi = {
-  /** GET /api/v1/alerts/ */
+  /** GET /api/v1/alerts/ — active + acknowledged alerts only */
   getAlerts: async (): Promise<Alert[]> => {
     const { data } = await axiosInstance.get<Alert[]>("/api/v1/alerts/");
+    return data;
+  },
+
+  /** GET /api/v1/alerts/history — resolved alerts only */
+  getAlertHistory: async (params?: {
+    machine_id?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Alert[]> => {
+    const { data } = await axiosInstance.get<Alert[]>("/api/v1/alerts/history", {
+      params,
+    });
     return data;
   },
 
@@ -74,8 +88,17 @@ export const alertsApi = {
   acknowledgeAlert: async (alertId: number): Promise<void> => {
     await axiosInstance.patch(`/api/v1/alerts/${alertId}/acknowledge`);
   },
+
+  /** PATCH /api/v1/alerts/{alert_id}/resolve*/
+  resolveAlert: async (
+    alertId: number,
+    payload: AlertResolvePayload,
+  ): Promise<void> => {
+    await axiosInstance.patch(`/api/v1/alerts/${alertId}/resolve`, payload);
+  },
 };
-// Data / Uploads   — x-api-key secured
+
+
 export const uploadsApi = {
   /** GET /api/v1/data/history */
   getHistory: async (): Promise<UploadHistoryItem[]> => {
@@ -85,7 +108,7 @@ export const uploadsApi = {
     return data;
   },
 
-  /** POST /api/v1/upload — operational CSV */
+  /** POST /api/v1/upload */
   uploadOperational: async (
     file: File,
     onProgress?: (pct: number) => void,
@@ -107,7 +130,7 @@ export const uploadsApi = {
     return data;
   },
 
-  /** POST /api/v1/baseline/upload — initial baseline CSV */
+  /** POST /api/v1/baseline/upload */
   uploadBaselineInitial: async (
     file: File,
     onProgress?: (pct: number) => void,
@@ -129,7 +152,7 @@ export const uploadsApi = {
     return data;
   },
 
-  /** POST /api/v1/baseline/update — incremental baseline CSV */
+  /** POST /api/v1/baseline/update */
   uploadBaselineUpdate: async (
     file: File,
     onProgress?: (pct: number) => void,
@@ -165,6 +188,11 @@ export const uploadsApi = {
     return data;
   },
 
+  /** DELETE /api/v1/baseline */
+  deleteAllBaselines: async (): Promise<void> => {
+    await axiosInstance.delete("/api/v1/baseline");
+  },
+
   /** GET /api/v1/baseline/history */
   getBaselineHistory: async (): Promise<unknown[]> => {
     const { data } = await axiosInstance.get<unknown[]>(
@@ -194,6 +222,11 @@ export const uploadsApi = {
     await axiosInstance.delete(`/api/v1/baseline/${machineId}`);
   },
 
+  /** DELETE /api/v1/operational — delete ALL mill operational data */
+  deleteAllOperational: async (): Promise<void> => {
+    await axiosInstance.delete("/api/v1/operational");
+  },
+
   /** GET /api/v1/mill/{mill_id}/summary */
   getMillSummary: async ({
     millId,
@@ -215,115 +248,64 @@ export const uploadsApi = {
   },
 };
 
-// Auth / Team 
+
+// Auth / Team
 export const teamApi = {
-  /** GET /api/v1/auth/me */
   getCurrentUser: async (): Promise<CurrentUser> => {
     const { data } = await axiosInstance.get<CurrentUser>("/api/v1/auth/me");
     return data;
   },
-
-  /** GET /api/v1/auth/teammates */
   getTeammates: async (): Promise<TeammateResponse[]> => {
-    const { data } = await axiosInstance.get<TeammateResponse[]>(
-      "/api/v1/auth/teammates",
-    );
+    const { data } = await axiosInstance.get<TeammateResponse[]>("/api/v1/auth/teammates");
     return data;
   },
-
-  /** PUT /api/v1/auth/teammates/{user_id}/role */
-  updateTeammateRole: async (
-    userId: number,
-    payload: TeammateUpdate,
-  ): Promise<void> => {
-    await axiosInstance.put(
-      `/api/v1/auth/teammates/${userId}/role`,
-      payload,
-    );
+  updateTeammateRole: async (userId: number, payload: TeammateUpdate): Promise<void> => {
+    await axiosInstance.put(`/api/v1/auth/teammates/${userId}/role`, payload);
   },
-
-  /** DELETE /api/v1/auth/teammates/{user_id} */
   removeTeammate: async (userId: number): Promise<void> => {
     await axiosInstance.delete(`/api/v1/auth/teammates/${userId}`);
   },
-
-  /** GET /api/v1/auth/invitations */
   getInvitations: async (): Promise<InvitationResponse[]> => {
-    const { data } = await axiosInstance.get<InvitationResponse[]>(
-      "/api/v1/auth/invitations",
-    );
+    const { data } = await axiosInstance.get<InvitationResponse[]>("/api/v1/auth/invitations");
     return data;
   },
-
-  /** POST /api/v1/auth/invite */
-  sendInvitation: async (
-    payload: TeammateInvite,
-  ): Promise<InvitationResponse> => {
-    const { data } = await axiosInstance.post<InvitationResponse>(
-      "/api/v1/auth/invite",
-      payload,
-    );
+  sendInvitation: async (payload: TeammateInvite): Promise<InvitationResponse> => {
+    const { data } = await axiosInstance.post<InvitationResponse>("/api/v1/auth/invite", payload);
     return data;
   },
-
-  /** POST /api/v1/auth/invitations/{invitation_id}/resend */
   resendInvitation: async (id: number): Promise<void> => {
     await axiosInstance.post(`/api/v1/auth/invitations/${id}/resend`);
   },
-
-  /** DELETE /api/v1/auth/invitations/{invitation_id} */
   revokeInvitation: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/api/v1/auth/invitations/${id}`);
   },
 };
+
+
 // Admin
 export const adminApi = {
-  /** GET /api/v1/admin/users */
   listUsers: async (): Promise<unknown[]> => {
     const { data } = await axiosInstance.get<unknown[]>("/api/v1/admin/users");
     return data;
   },
-
-  /** POST /api/v1/admin/users */
   createUser: async (payload: UserCreate): Promise<void> => {
     await axiosInstance.post("/api/v1/admin/users", payload);
   },
-
-  /** PUT /api/v1/admin/users/{user_id}/reset-password */
-  resetUserPassword: async (
-    userId: number,
-    payload: { password: string },
-  ): Promise<void> => {
-    await axiosInstance.put(
-      `/api/v1/admin/users/${userId}/reset-password`,
-      payload,
-    );
+  resetUserPassword: async (userId: number, payload: { password: string }): Promise<void> => {
+    await axiosInstance.put(`/api/v1/admin/users/${userId}/reset-password`, payload);
   },
-
-  /** GET /api/v1/admin/mills */
   listMills: async (): Promise<unknown[]> => {
     const { data } = await axiosInstance.get<unknown[]>("/api/v1/admin/mills");
     return data;
   },
-
-  /** POST /api/v1/admin/mills */
   createMill: async (payload: MillCreate): Promise<void> => {
     await axiosInstance.post("/api/v1/admin/mills", payload);
   },
-
-  /** GET /api/v1/admin/uploads */
   getGlobalUploadHistory: async (): Promise<unknown[]> => {
-    const { data } = await axiosInstance.get<unknown[]>(
-      "/api/v1/admin/uploads",
-    );
+    const { data } = await axiosInstance.get<unknown[]>("/api/v1/admin/uploads");
     return data;
   },
-
-  /** PUT /api/v1/admin/stats/{stats_id} */
-  correctMachineStats: async (
-    statsId: number,
-    payload: StatsUpdate,
-  ): Promise<void> => {
+  correctMachineStats: async (statsId: number, payload: StatsUpdate): Promise<void> => {
     await axiosInstance.put(`/api/v1/admin/stats/${statsId}`, payload);
   },
 };

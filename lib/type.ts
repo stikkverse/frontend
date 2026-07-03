@@ -1,11 +1,13 @@
-export type UserRole = "admin" | "manager";
+// ═══════════════════════════════════════════
+// Auth — unchanged
+// ═══════════════════════════════════════════
+export type UserRole = "superadmin" | "admin" | "manager";
 
 export interface UserRegister {
   email: string;
   password: string;
-  full_name: string;
-  mill_name: string;
-  mill_tag: string;
+  mill_id: string;
+  role?: UserRole;
 }
 
 export interface LoginRequest {
@@ -23,14 +25,15 @@ export interface Token {
 export interface CurrentUser {
   id: number;
   email: string;
-  full_name: string;
+  full_name?: string;
   role: UserRole;
   mill_id: string;
-  mill_name: string;
-  is_verified: boolean;
-  created_at: string;
+  mill_name?: string;
+  is_verified?: boolean;
+  created_at?: string;
 }
 
+// Teammate & Invitation — kept for auth flows
 export interface TeammateResponse {
   id: number;
   email: string;
@@ -57,29 +60,50 @@ export interface InvitationResponse {
   created_at: string;
 }
 
+
+// ═══════════════════════════════════════════
 // Dashboard
+// GET /api/v1/dashboard/summary → DashboardSummaryResponse
+// GET /api/v1/dashboard/machines → MachineSummaryResponse[]
+// ═══════════════════════════════════════════
 export type BearingRisk = "HIGH" | "WARNING" | "NORMAL";
 export type MachineStatus = "RUNNING" | "IDLE";
 
+// Updated to match DashboardSummaryResponse schema exactly
 export interface DashboardSummary {
-  mill_id: string;
-  mill_name: string;
-  date: string;
-  total_excess_co2_kg: number;
-  avoidable_cost_usd: number;
-  machines_total: number;
-  machines_running: number;
-  machines_idle: number;
-  last_updated: string;
+  total_energy_kwh: number;
+  total_co2_kg: number;
+  machine_count: number;
+  active_alerts_count: number;
+  date: string | null;
 }
 
+export interface AvailabilityMetrics {
+  data_coverage_hours: number | null;
+  data_availability_pct: number | null;
+  gap_count: number | null;
+  max_gap_minutes: number | null;
+  avg_sampling_interval_minutes: number | null;
+}
+
+export interface ReferenceMetrics {
+  baseline_mean: number;
+  baseline_std: number;
+  baseline_p95: number;
+}
+
+// Updated to match MachineSummaryResponse schema exactly
 export interface DashboardMachine {
   machine_id: string;
+  energy_consumption: number;
+  carbon_emissions: number;
+  avg_current: number;
+  run_hours: number;
+  reference_metrics: ReferenceMetrics;
   health_score: number;
-  bearing_risk: BearingRisk;
-  excess_co2_today_kg: number;
-  status: MachineStatus;
-  last_reading_at: string;
+  health_score_breakdown: Record<string, unknown>;
+  status: string;
+  availability: AvailabilityMetrics;
 }
 
 export interface MachineSpec {
@@ -88,20 +112,32 @@ export interface MachineSpec {
   };
 }
 
+// Updated to match MachineTrendResponse schema exactly
 export interface MachineTrendPoint {
   date: string;
+  energy_kwh: number;
+  carbon_kg: number;
+  avg_current: number;
+  run_hours: number;
   health_score: number;
-  excess_co2_kg: number;
-  bearing_risk: BearingRisk;
+  data_coverage_hours: number | null;
+  data_availability_pct: number | null;
+  gap_count: number | null;
+  max_gap_minutes: number | null;
+  rolling_7d_current: number | null;
+  rolling_30d_current: number | null;
 }
 
-export interface MachineTrends {
-  machine_id: string;
-  range: string;
-  data_points: MachineTrendPoint[];
-}
+// Trends endpoint now returns an array directly, not a wrapper object
+export type MachineTrends = MachineTrendPoint[];
 
+// ═══════════════════════════════════════════
 // Alerts
+// GET /api/v1/alerts/         — active + acknowledged only
+// GET /api/v1/alerts/history  — resolved only
+// PATCH /api/v1/alerts/{id}/acknowledge
+// PATCH /api/v1/alerts/{id}/resolve
+// ═══════════════════════════════════════════
 export type AlertSeverity = "HIGH" | "WARNING" | "INFO";
 
 export interface Alert {
@@ -116,12 +152,25 @@ export interface Alert {
   acknowledged_by: string | null;
 }
 
+// Updated enum values to match spec exactly
+export type ResolutionCategory =
+  | "hardware_fixed"
+  | "software_fix"        // was software_fixed
+  | "false_alarm"
+  | "maintenance"          // was maintenance_scheduled
+  | "other";
+
+export interface AlertResolvePayload {
+  resolution_note?: string | null;
+  resolution_category?: ResolutionCategory | null;
+}
+
+export type AlertStatus = "active" | "acknowledged" | "resolved";
+
+// ═══════════════════════════════════════════
 // Data / Uploads
-export type ProcessingStatus =
-  | "PENDING"
-  | "PROCESSING"
-  | "COMPLETED"
-  | "FAILED";
+// ═══════════════════════════════════════════
+export type ProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 export interface UploadHistoryItem {
   id: number;
@@ -163,18 +212,15 @@ export interface BaselineUpdate {
   p95_current: number;
 }
 
+// ═══════════════════════════════════════════
 // Mill Summary
+// GET /api/v1/mill/{mill_id}/summary
+// ═══════════════════════════════════════════
 export interface MillSummaryParams {
   millId: string;
   startDate?: string;
   endDate?: string;
   machineId?: string;
-}
-
-export interface ReferenceMetrics {
-  baseline_mean: number;
-  baseline_std: number;
-  baseline_p95: number;
 }
 
 export interface HealthScoreBreakdown {
@@ -214,7 +260,6 @@ export interface MillSummaryDetail {
   machines: MillMachine[];
 }
 
-// MillSummary
 export interface MillSummary {
   mill_id: string;
   start_date: string;
@@ -229,11 +274,13 @@ export interface MillSummary {
   }[];
 }
 
+// ═══════════════════════════════════════════
 // Admin
+// ═══════════════════════════════════════════
 export interface UserCreate {
   email: string;
   password: string;
-  role: UserRole;
+  role?: UserRole;
 }
 
 export interface MillCreate {
@@ -247,7 +294,10 @@ export interface StatsUpdate {
   bearing_risk: string;
   message: string;
 }
+
+// ═══════════════════════════════════════════
 // UI navigation
+// ═══════════════════════════════════════════
 export interface TabItem {
   id: string;
   label: string;
