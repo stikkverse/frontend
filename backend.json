@@ -1,0 +1,1711 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FactorySenseAI API - Production Ready",
+    "description": "Backend API for FactorySense Machine Health & Telemetry Platform",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register",
+        "description": "Public self-registration — creates a mill admin account with one initial mill.\nSuperadmin role cannot be claimed here; it is seeded at server startup via env vars.",
+        "operationId": "register_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserRegister" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Register Api V1 Auth Register Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login",
+        "operationId": "login_api_v1_auth_login_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Token" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout",
+        "operationId": "logout_api_v1_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Read Users Me",
+        "operationId": "read_users_me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        },
+        "security": [{ "OAuth2PasswordBearer": [] }]
+      }
+    },
+    "/api/v1/upload": {
+      "post": {
+        "tags": ["Data"],
+        "summary": "[FILE UPLOAD] Operational Data CSV",
+        "description": "Uploads a CSV file with machine operational data. Processing is done in the background. Large files handled efficiently.",
+        "operationId": "upload_csv_api_v1_upload_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_csv_api_v1_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UploadResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/baseline/update": {
+      "post": {
+        "tags": ["Data"],
+        "summary": "[FILE UPLOAD] Incremental Bulk Baseline Update (CSV)",
+        "description": "Uploads a CSV to INCREMENTALLY refine existing baselines for multiple machines.",
+        "operationId": "bulk_update_baseline_api_v1_baseline_update_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_bulk_update_baseline_api_v1_baseline_update_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UploadResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/baseline/upload": {
+      "post": {
+        "tags": ["Data"],
+        "summary": "[FILE UPLOAD] Initial Mill Baseline (CSV)",
+        "description": "Establish INITIAL machine baselines for the mill.",
+        "operationId": "upload_baseline_api_v1_baseline_upload_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_baseline_api_v1_baseline_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UploadResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/{task_id}": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "Get Task Status",
+        "description": "Polling endpoint to check background task status.",
+        "operationId": "get_task_status_api_v1_task__task_id__get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Task Id" }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/data/history": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "View Upload History",
+        "operationId": "get_upload_history_api_v1_data_history_get",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/baseline": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "List Current Baselines",
+        "operationId": "get_baselines_api_v1_baseline_get",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Data"],
+        "summary": "Delete All Mill Baseline Data",
+        "description": "Deletes all baseline data and baseline history for the mill.",
+        "operationId": "delete_all_baseline_api_v1_baseline_delete",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/baseline/history": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "View Global Baseline History",
+        "operationId": "get_baseline_history_api_v1_baseline_history_get",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/baseline/{machine_id}/history": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "View Machine Baseline History",
+        "operationId": "get_machine_baseline_history_api_v1_baseline__machine_id__history_get",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Machine Id" }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/baseline/{machine_id}": {
+      "put": {
+        "tags": ["Data"],
+        "summary": "[MANUAL OVERRIDE - NO FILE] Update Single Baseline (JSON)",
+        "operationId": "manual_update_baseline_api_v1_baseline__machine_id__put",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Machine Id" }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BaselineUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Data"],
+        "summary": "Delete Machine Baseline",
+        "operationId": "delete_baseline_api_v1_baseline__machine_id__delete",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Machine Id" }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/operational": {
+      "delete": {
+        "tags": ["Data"],
+        "summary": "Delete All Mill Operational Data",
+        "description": "Deletes all machine data points, daily statistics, and alerts for the mill.",
+        "operationId": "delete_all_operational_api_v1_operational_delete",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mill/{mill_id}/summary": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "Get Mill Operational Summary",
+        "operationId": "get_summary_api_v1_mill__mill_id__summary_get",
+        "parameters": [
+          {
+            "name": "mill_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Mill Id" }
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                { "type": "string", "format": "date" },
+                { "type": "null" }
+              ],
+              "title": "Start Date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                { "type": "string", "format": "date" },
+                { "type": "null" }
+              ],
+              "title": "End Date"
+            }
+          },
+          {
+            "name": "machine_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "title": "Machine Id"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/machine-specs": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Get Machine Specs",
+        "description": "Returns the safety thresholds and metadata for all machines.",
+        "operationId": "get_machine_specs_api_v1_dashboard_machine_specs_get",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/summary": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Get Dashboard Summary",
+        "operationId": "get_dashboard_summary_api_v1_dashboard_summary_get",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                { "type": "string", "format": "date" },
+                { "type": "null" }
+              ],
+              "title": "Date"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardSummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/machines": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Get Machines",
+        "operationId": "get_machines_api_v1_dashboard_machines_get",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MachineSummaryResponse"
+                  },
+                  "title": "Response Get Machines Api V1 Dashboard Machines Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/machines/{machine_id}/trends": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Get Machine Trends",
+        "operationId": "get_machine_trends_api_v1_dashboard_machines__machine_id__trends_get",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Machine Id" }
+          },
+          {
+            "name": "range",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "default": "7d", "title": "Range" }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MachineTrendResponse"
+                  },
+                  "title": "Response Get Machine Trends Api V1 Dashboard Machines  Machine Id  Trends Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/": {
+      "get": {
+        "tags": ["Alerts"],
+        "summary": "Get Alerts",
+        "description": "Active feed: returns active and acknowledged alerts (everything not resolved).",
+        "operationId": "get_alerts_api_v1_alerts__get",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/history": {
+      "get": {
+        "tags": ["Alerts"],
+        "summary": "Get Alert History",
+        "description": "Alert history log: resolved alerts only, newest first.",
+        "operationId": "get_alert_history_api_v1_alerts_history_get",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "title": "Machine Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/{alert_id}/acknowledge": {
+      "patch": {
+        "tags": ["Alerts"],
+        "summary": "Acknowledge Alert",
+        "operationId": "acknowledge_alert_api_v1_alerts__alert_id__acknowledge_patch",
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Alert Id" }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/{alert_id}/resolve": {
+      "patch": {
+        "tags": ["Alerts"],
+        "summary": "Resolve Alert",
+        "description": "Mark an alert as resolved and move it to history.",
+        "operationId": "resolve_alert_api_v1_alerts__alert_id__resolve_patch",
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Alert Id" }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "title": "X-Api-Key" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ResolveRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List Users",
+        "description": "Superadmin: all users.\nMill admin: only users they created (their managers).",
+        "operationId": "list_users_api_v1_admin_users_get",
+        "security": [{ "OAuth2PasswordBearer": [] }],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "title": "Email"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                { "$ref": "#/components/schemas/UserRole" },
+                { "type": "null" }
+              ],
+              "title": "Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create User",
+        "description": "Create a new user.\nMill admin can only create manager-role users.\nSuperadmin can create any role except superadmin (use env seed for that).",
+        "operationId": "create_user_api_v1_admin_users_post",
+        "security": [{ "OAuth2PasswordBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserCreate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{user_id}/reset-password": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Reset Password",
+        "operationId": "reset_password_api_v1_admin_users__user_id__reset_password_put",
+        "security": [{ "OAuth2PasswordBearer": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "User Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/mills": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List Mills",
+        "description": "Superadmin: all mills across all customers.\nMill admin: only mills they own (admin_id == current user).",
+        "operationId": "list_mills_api_v1_admin_mills_get",
+        "security": [{ "OAuth2PasswordBearer": [] }],
+        "parameters": [
+          {
+            "name": "mill_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "title": "Mill Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "integer" }, { "type": "null" }],
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create Mill",
+        "description": "Create a mill.\nMill admin: mill is always created under themselves (admin_id = self).\nSuperadmin: can assign to any user_id / email; admin_id stays as superadmin.",
+        "operationId": "create_mill_api_v1_admin_mills_post",
+        "security": [{ "OAuth2PasswordBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MillCreate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/tasks": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List Tasks",
+        "description": "Processing task queue, scoped to the calling admin's mills.",
+        "operationId": "list_tasks_api_v1_admin_tasks_get",
+        "security": [{ "OAuth2PasswordBearer": [] }],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                { "$ref": "#/components/schemas/ProcessingStatus" },
+                { "type": "null" }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "mill_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "title": "Mill Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/uploads": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Global Upload History",
+        "description": "Upload history, scoped to the calling admin's mills.",
+        "operationId": "global_upload_history_api_v1_admin_uploads_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        },
+        "security": [{ "OAuth2PasswordBearer": [] }]
+      }
+    },
+    "/api/v1/admin/stats/{stats_id}": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Correct Machine Stats",
+        "description": "Manual data correction — mill admin may only correct stats for their own mills.",
+        "operationId": "correct_machine_stats_api_v1_admin_stats__stats_id__put",
+        "security": [{ "OAuth2PasswordBearer": [] }],
+        "parameters": [
+          {
+            "name": "stats_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Stats Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/StatsUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/superadmin/health": {
+      "get": {
+        "tags": ["Superadmin"],
+        "summary": "Platform Health Dashboard",
+        "description": "Superadmin command center. Returns a single Health Score (0-100 / green-yellow-red)\nplus aggregated telemetry: system uptime, API latency, database status, machine health\ndistribution, alert counts, task pipeline status, and third-party service checks.",
+        "operationId": "get_platform_health_api_v1_superadmin_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        },
+        "security": [{ "OAuth2PasswordBearer": [] }]
+      }
+    },
+    "/api/v1/superadmin/mills/activity": {
+      "get": {
+        "tags": ["Superadmin"],
+        "summary": "Per-Mill Data Activity Report",
+        "description": "Lists every registered mill with its last-seen data date, machine count,\n7-day average health score, and a simple activity status:\nactive (≤1d), stale (2-7d), inactive (>7d), or no_data.\nResults are sorted most-concerning first.",
+        "operationId": "get_mill_activity_api_v1_superadmin_mills_activity_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        },
+        "security": [{ "OAuth2PasswordBearer": [] }]
+      }
+    },
+    "/api/v1/superadmin/alerts/overview": {
+      "get": {
+        "tags": ["Superadmin"],
+        "summary": "Platform-Wide Open Alerts",
+        "description": "Returns all unacknowledged alerts across every mill, enriched with the\nowning user's email. Ordered newest-first, capped at 200 rows.",
+        "operationId": "get_alerts_overview_api_v1_superadmin_alerts_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        },
+        "security": [{ "OAuth2PasswordBearer": [] }]
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AvailabilityMetrics": {
+        "properties": {
+          "data_coverage_hours": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Data Coverage Hours"
+          },
+          "data_availability_pct": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Data Availability Pct"
+          },
+          "gap_count": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Gap Count"
+          },
+          "max_gap_minutes": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Max Gap Minutes"
+          },
+          "avg_sampling_interval_minutes": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Avg Sampling Interval Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data_coverage_hours",
+          "data_availability_pct",
+          "gap_count",
+          "max_gap_minutes",
+          "avg_sampling_interval_minutes"
+        ],
+        "title": "AvailabilityMetrics"
+      },
+      "BaselineUpdate": {
+        "properties": {
+          "mean_current": {
+            "type": "number",
+            "title": "Mean Current",
+            "description": "Mean current in Amperes"
+          },
+          "std_current": {
+            "type": "number",
+            "title": "Std Current",
+            "description": "Standard deviation of current"
+          },
+          "p95_current": {
+            "type": "number",
+            "title": "P95 Current",
+            "description": "95th percentile of current"
+          }
+        },
+        "type": "object",
+        "required": ["mean_current", "std_current", "p95_current"],
+        "title": "BaselineUpdate"
+      },
+      "Body_bulk_update_baseline_api_v1_baseline_update_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "The CSV file containing baseline measurements for multiple machines"
+          }
+        },
+        "type": "object",
+        "required": ["file"],
+        "title": "Body_bulk_update_baseline_api_v1_baseline_update_post"
+      },
+      "Body_upload_baseline_api_v1_baseline_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "The CSV file containing the initial baseline measurements"
+          }
+        },
+        "type": "object",
+        "required": ["file"],
+        "title": "Body_upload_baseline_api_v1_baseline_upload_post"
+      },
+      "Body_upload_csv_api_v1_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "The CSV file containing operational sensor data"
+          }
+        },
+        "type": "object",
+        "required": ["file"],
+        "title": "Body_upload_csv_api_v1_upload_post"
+      },
+      "DashboardSummaryResponse": {
+        "properties": {
+          "total_energy_kwh": { "type": "number", "title": "Total Energy Kwh" },
+          "total_co2_kg": { "type": "number", "title": "Total Co2 Kg" },
+          "machine_count": { "type": "integer", "title": "Machine Count" },
+          "active_alerts_count": {
+            "type": "integer",
+            "title": "Active Alerts Count"
+          },
+          "date": {
+            "anyOf": [
+              { "type": "string", "format": "date" },
+              { "type": "null" }
+            ],
+            "title": "Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_energy_kwh",
+          "total_co2_kg",
+          "machine_count",
+          "active_alerts_count",
+          "date"
+        ],
+        "title": "DashboardSummaryResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": { "$ref": "#/components/schemas/ValidationError" },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MachineSummaryResponse": {
+        "properties": {
+          "machine_id": { "type": "string", "title": "Machine Id" },
+          "energy_consumption": {
+            "type": "number",
+            "title": "Energy Consumption"
+          },
+          "carbon_emissions": { "type": "number", "title": "Carbon Emissions" },
+          "avg_current": { "type": "number", "title": "Avg Current" },
+          "run_hours": { "type": "number", "title": "Run Hours" },
+          "reference_metrics": {
+            "$ref": "#/components/schemas/ReferenceMetrics"
+          },
+          "health_score": { "type": "number", "title": "Health Score" },
+          "health_score_breakdown": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Health Score Breakdown"
+          },
+          "status": { "type": "string", "title": "Status" },
+          "availability": { "$ref": "#/components/schemas/AvailabilityMetrics" }
+        },
+        "type": "object",
+        "required": [
+          "machine_id",
+          "energy_consumption",
+          "carbon_emissions",
+          "avg_current",
+          "run_hours",
+          "reference_metrics",
+          "health_score",
+          "health_score_breakdown",
+          "status",
+          "availability"
+        ],
+        "title": "MachineSummaryResponse"
+      },
+      "MachineTrendResponse": {
+        "properties": {
+          "date": { "type": "string", "format": "date", "title": "Date" },
+          "energy_kwh": { "type": "number", "title": "Energy Kwh" },
+          "carbon_kg": { "type": "number", "title": "Carbon Kg" },
+          "avg_current": { "type": "number", "title": "Avg Current" },
+          "run_hours": { "type": "number", "title": "Run Hours" },
+          "health_score": { "type": "number", "title": "Health Score" },
+          "data_coverage_hours": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Data Coverage Hours"
+          },
+          "data_availability_pct": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Data Availability Pct"
+          },
+          "gap_count": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Gap Count"
+          },
+          "max_gap_minutes": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Max Gap Minutes"
+          },
+          "rolling_7d_current": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Rolling 7D Current"
+          },
+          "rolling_30d_current": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Rolling 30D Current"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "energy_kwh",
+          "carbon_kg",
+          "avg_current",
+          "run_hours",
+          "health_score",
+          "data_coverage_hours",
+          "data_availability_pct",
+          "gap_count",
+          "max_gap_minutes",
+          "rolling_7d_current",
+          "rolling_30d_current"
+        ],
+        "title": "MachineTrendResponse"
+      },
+      "MillCreate": {
+        "properties": {
+          "mill_id": { "type": "string", "title": "Mill Id" },
+          "user_id": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "User Id"
+          },
+          "email": {
+            "anyOf": [
+              { "type": "string", "format": "email" },
+              { "type": "null" }
+            ],
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": ["mill_id"],
+        "title": "MillCreate"
+      },
+      "ProcessingStatus": {
+        "type": "string",
+        "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED"],
+        "title": "ProcessingStatus"
+      },
+      "ReferenceMetrics": {
+        "properties": {
+          "baseline_mean": { "type": "number", "title": "Baseline Mean" },
+          "baseline_std": { "type": "number", "title": "Baseline Std" },
+          "baseline_p95": { "type": "number", "title": "Baseline P95" }
+        },
+        "type": "object",
+        "required": ["baseline_mean", "baseline_std", "baseline_p95"],
+        "title": "ReferenceMetrics"
+      },
+      "ResolutionCategory": {
+        "type": "string",
+        "enum": [
+          "hardware_fixed",
+          "software_fix",
+          "false_alarm",
+          "maintenance",
+          "other"
+        ],
+        "title": "ResolutionCategory"
+      },
+      "ResolveRequest": {
+        "properties": {
+          "resolution_note": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Resolution Note"
+          },
+          "resolution_category": {
+            "anyOf": [
+              { "$ref": "#/components/schemas/ResolutionCategory" },
+              { "type": "null" }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResolveRequest"
+      },
+      "StatsUpdate": {
+        "properties": {
+          "health_score": { "type": "number", "title": "Health Score" },
+          "bearing_risk": { "type": "string", "title": "Bearing Risk" },
+          "message": { "type": "string", "title": "Message" }
+        },
+        "type": "object",
+        "required": ["health_score", "bearing_risk", "message"],
+        "title": "StatsUpdate"
+      },
+      "TaskResponse": {
+        "properties": {
+          "task_id": { "type": "string", "title": "Task Id" },
+          "status": { "$ref": "#/components/schemas/ProcessingStatus" },
+          "progress": { "type": "number", "title": "Progress" },
+          "message": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Message"
+          },
+          "estimated_seconds_remaining": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Estimated Seconds Remaining"
+          },
+          "records_processed": {
+            "type": "integer",
+            "title": "Records Processed",
+            "default": 0
+          },
+          "total_records": {
+            "type": "integer",
+            "title": "Total Records",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": ["task_id", "status", "progress"],
+        "title": "TaskResponse"
+      },
+      "Token": {
+        "properties": {
+          "access_token": { "type": "string", "title": "Access Token" },
+          "token_type": { "type": "string", "title": "Token Type" },
+          "api_key": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Api Key"
+          },
+          "mill_id": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Mill Id"
+          }
+        },
+        "type": "object",
+        "required": ["access_token", "token_type"],
+        "title": "Token"
+      },
+      "UploadResponse": {
+        "properties": {
+          "task_id": { "type": "string", "title": "Task Id" },
+          "message": { "type": "string", "title": "Message" },
+          "estimated_initial_seconds": {
+            "type": "number",
+            "title": "Estimated Initial Seconds"
+          }
+        },
+        "type": "object",
+        "required": ["task_id", "message", "estimated_initial_seconds"],
+        "title": "UploadResponse"
+      },
+      "UserCreate": {
+        "properties": {
+          "email": { "type": "string", "format": "email", "title": "Email" },
+          "password": { "type": "string", "title": "Password" },
+          "role": {
+            "$ref": "#/components/schemas/UserRole",
+            "default": "manager"
+          }
+        },
+        "type": "object",
+        "required": ["email", "password"],
+        "title": "UserCreate"
+      },
+      "UserRegister": {
+        "properties": {
+          "email": { "type": "string", "format": "email", "title": "Email" },
+          "password": { "type": "string", "title": "Password" },
+          "mill_id": { "type": "string", "title": "Mill Id" },
+          "role": {
+            "anyOf": [
+              { "$ref": "#/components/schemas/UserRole" },
+              { "type": "null" }
+            ],
+            "default": "admin"
+          }
+        },
+        "type": "object",
+        "required": ["email", "password", "mill_id"],
+        "title": "UserRegister"
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": ["superadmin", "admin", "manager"],
+        "title": "UserRole"
+      },
+      "UserUpdate": {
+        "properties": { "password": { "type": "string", "title": "Password" } },
+        "type": "object",
+        "required": ["password"],
+        "title": "UserUpdate"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": { "type": "string", "title": "Message" },
+          "type": { "type": "string", "title": "Error Type" },
+          "input": { "title": "Input" },
+          "ctx": { "type": "object", "title": "Context" }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "type": "oauth2",
+        "flows": {
+          "password": { "scopes": {}, "tokenUrl": "/api/v1/auth/login" }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Operations for user registration, authentication (JWT), and session management."
+    },
+    {
+      "name": "Data",
+      "description": "Upload functionality. API-key secured endpoints for automated industrial data ingestion and baselining."
+    },
+    {
+      "name": "Dashboard",
+      "description": "Aggregated metrics, health scores, and trends for front-end visualization."
+    },
+    {
+      "name": "Alerts",
+      "description": "Stateful alert lifecycle: active feed, acknowledge, resolve, and history log."
+    },
+    {
+      "name": "Admin",
+      "description": "Mill admin tools: manage own mills, managers, and upload history. Requires mill admin JWT."
+    },
+    {
+      "name": "Superadmin",
+      "description": "Platform owner only. Platform-wide health telemetry, all mills, all users. Requires superadmin JWT."
+    }
+  ]
+}
