@@ -5,6 +5,7 @@ import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import { useUnacknowledgedCount } from "@/hooks/useAlerts";
+
 import BackgroundGrid from "@/components/shared/BackgroundGrid";
 
 export default function DashboardLayout({
@@ -13,8 +14,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [loaded, setLoaded] = useState(false);
-
-  const unacknowledgedAlerts = useUnacknowledgedCount();
+  const activeAlerts = useUnacknowledgedCount();
 
   useEffect(() => {
     const tm = setTimeout(() => setLoaded(true), 80);
@@ -35,7 +35,7 @@ export default function DashboardLayout({
           }}
         >
           <Header />
-          <DashboardNav alertCount={unacknowledgedAlerts} />
+           <DashboardNav alertCount={activeAlerts} />
         </div>
 
         <div
