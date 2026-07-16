@@ -22,12 +22,12 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="relative h-screen overflow-hidden flex flex-col">
       <BackgroundGrid />
 
-      <div className="relative z-2 px-5 pt-7 pb-12 w-[90%] mx-auto flex flex-col">
+      <div className="relative z-2 px-5 pt-7 pb-6 w-[90%] mx-auto h-full flex flex-col">
         <div
-          className="transition-all duration-700"
+          className="shrink-0 transition-all duration-700"
           style={{
             opacity: loaded ? 1 : 0,
             transform: loaded ? "translateY(0)" : "translateY(-12px)",
@@ -39,7 +39,7 @@ export default function DashboardLayout({
         </div>
 
         <div
-          className="flex-1 mt-8 transition-all duration-500"
+          className="flex-1 min-h-0 mt-8 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden transition-all duration-500"
           style={{
             opacity: loaded ? 1 : 0,
             transform: loaded ? "translateY(0)" : "translateY(10px)",
@@ -49,9 +49,10 @@ export default function DashboardLayout({
         >
           {children}
         </div>
-      </div>
-      <div className="mt-auto relative z-2">
-        <Footer />
+
+        <div className="shrink-0 relative z-2">
+          <Footer />
+        </div>
       </div>
     </div>
   );
