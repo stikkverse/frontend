@@ -7,10 +7,7 @@ import {
   useAcknowledgeAlert,
   useResolveAlert,
 } from "@/hooks/useAlerts";
-import type { ExtendedAlert } from "@/hooks/useAlerts";
-import type { Alert, ResolutionCategory } from "@/lib/type";
-import { getRiskColor, getRiskBg } from "@/lib/helper";
-import type { BearingRisk } from "@/lib/type";
+import type { Alert, AlertType, ResolutionCategory } from "@/lib/type";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +15,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-function formatRelativeTime(dateStr: string): string {
+function formatRelativeTime(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 60) return `${mins}m ago`;
@@ -27,16 +25,23 @@ function formatRelativeTime(dateStr: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-// Updated to match spec enum exactly
+const TYPE_STYLES: Record<AlertType, { color: string; bg: string; icon: string }> = {
+  DATA_GAP:    { color: "var(--amber)", bg: "var(--amber-bg)", icon: "◈" },
+  WARNING:     { color: "var(--red)",   bg: "var(--red-bg)",   icon: "⚠" },
+  CO2_INCREASE:{ color: "var(--amber)", bg: "var(--amber-bg)", icon: "↑" },
+};
+
+const DEFAULT_TYPE_STYLE = { color: "var(--text-muted)", bg: "var(--bg-alt)", icon: "ℹ" };
+
 const RESOLUTION_CATEGORIES: { value: ResolutionCategory; label: string }[] = [
   { value: "hardware_fixed", label: "Hardware Fixed" },
-  { value: "software_fix",   label: "Software Fix" },
-  { value: "false_alarm",    label: "False Alarm" },
-  { value: "maintenance",    label: "Maintenance" },
-  { value: "other",          label: "Other" },
+  { value: "software_fix",   label: "Software Fix"   },
+  { value: "false_alarm",    label: "False Alarm"    },
+  { value: "maintenance",    label: "Maintenance"    },
+  { value: "other",          label: "Other"          },
 ];
 
-//Resolve Modal 
+// ─── Resolve Modal ────────────────────────────────────────────────────────────
 
 function ResolveModal({
   alert,
@@ -54,10 +59,6 @@ function ResolveModal({
   const [note, setNote] = useState("");
   const [category, setCategory] = useState<ResolutionCategory>("hardware_fixed");
 
-  const handleSubmit = () => {
-    onSubmit(note.trim(), category);
-  };
-
   const handleOpenChange = (v: boolean) => {
     if (!v) { setNote(""); setCategory("hardware_fixed"); onClose(); }
   };
@@ -69,7 +70,7 @@ function ResolveModal({
           RESOLVE ALERT
         </DialogTitle>
         <DialogDescription className="font-sans text-[13px]" style={{ color: "var(--text-secondary)" }}>
-          {alert ? `Machine ${alert.machine_id} — ${(alert.alert_type ?? "").replace(/_/g, " ")}` : ""}
+          {alert ? `Machine ${alert.machine_id ?? "Unknown"} — ${alert.type}` : ""}
         </DialogDescription>
 
         <div className="flex flex-col gap-4 mt-2">
@@ -122,7 +123,7 @@ function ResolveModal({
               CANCEL
             </button>
             <button
-              onClick={handleSubmit}
+              onClick={() => onSubmit(note.trim(), category)}
               disabled={isPending}
               className="font-mono text-[11px] tracking-widest px-4 py-2 rounded-lg border cursor-pointer transition-all duration-150 hover:opacity-90 disabled:opacity-50"
               style={{
@@ -140,7 +141,7 @@ function ResolveModal({
   );
 }
 
-//Alert Card 
+// ─── Alert Card ───────────────────────────────────────────────────────────────
 
 function AlertCard({
   alert,
@@ -150,77 +151,85 @@ function AlertCard({
   isResolvePending,
   isHistory = false,
 }: {
-  alert: ExtendedAlert;
+  alert: Alert;
   onAcknowledge: (id: number) => void;
-  onResolve: (alert: ExtendedAlert) => void;
+  onResolve: (alert: Alert) => void;
   isAckPending: boolean;
   isResolvePending: boolean;
   isHistory?: boolean;
 }) {
-  const color = getRiskColor(alert.severity as BearingRisk);
-  const bg = getRiskBg(alert.severity as BearingRisk);
+  const ts = TYPE_STYLES[alert.type] ?? DEFAULT_TYPE_STYLE;
+  const isActive       = alert.status === "active";
+  const isAcknowledged = alert.status === "acknowledged";
+  const isResolved     = isHistory || alert.status === "resolved";
+
+  const borderColor = isResolved
+    ? "var(--green)"
+    : isAcknowledged
+      ? "var(--border)"
+      : ts.color;
 
   return (
     <div
       className="rounded-[14px] border overflow-hidden transition-all duration-300 lg:w-[32%] md:w-[32%] w-full"
       style={{
-        borderColor: isHistory ? "var(--green)" : alert.acknowledged ? "var(--border)" : color,
+        borderColor,
         background: "var(--surface)",
         boxShadow: "var(--card-shadow)",
-        opacity: isHistory ? 0.7 : alert.acknowledged ? 0.85 : 1,
+        opacity: isResolved ? 0.7 : isAcknowledged ? 0.85 : 1,
       }}
     >
-      {isHistory ? (
+      {isResolved ? (
         <div className="h-0.75" style={{ background: "linear-gradient(90deg, transparent, var(--green), transparent)" }} />
-      ) : !alert.acknowledged ? (
-        <div className="h-0.75" style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
+      ) : isActive ? (
+        <div className="h-0.75" style={{ background: `linear-gradient(90deg, transparent, ${ts.color}, transparent)` }} />
       ) : null}
 
       <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2.5">
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-mono text-[14px]"
               style={{
-                background: isHistory ? "var(--green-bg)" : bg,
-                border: `1.5px solid ${isHistory ? "var(--green)" : color}`,
+                background: isResolved ? "var(--green-bg)" : ts.bg,
+                border: `1.5px solid ${isResolved ? "var(--green)" : ts.color}`,
+                color: isResolved ? "var(--green)" : ts.color,
               }}
             >
-              <span className="text-sm">
-                {isHistory ? "✓" : alert.severity === "HIGH" ? "⚠" : alert.severity === "WARNING" ? "◈" : "ℹ"}
-              </span>
+              {isResolved ? "✓" : ts.icon}
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[14px] font-bold" style={{ color: "var(--text)" }}>
-                  {alert.machine_id}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono text-[13px] font-bold" style={{ color: "var(--text)" }}>
+                  {alert.machine_id ?? "Unknown Machine"}
                 </span>
                 <span
                   className="px-2 py-0.5 rounded-full font-mono text-[9px] font-semibold tracking-[0.06em]"
                   style={{
-                    background: isHistory ? "var(--green-bg)" : bg,
-                    color: isHistory ? "var(--green)" : color,
-                    border: `1px solid ${isHistory ? "var(--green)" : color}`,
+                    background: isResolved ? "var(--green-bg)" : ts.bg,
+                    color: isResolved ? "var(--green)" : ts.color,
+                    border: `1px solid ${isResolved ? "var(--green)" : ts.color}`,
                   }}
                 >
-                  {isHistory ? "RESOLVED" : alert.severity}
+                  {isResolved ? "RESOLVED" : alert.type.replace(/_/g, " ")}
                 </span>
               </div>
               <p className="font-mono text-[9px] tracking-widest mt-0.5" style={{ color: "var(--text-muted)" }}>
-                {(alert.alert_type ?? "").replace(/_/g, " ")}
-                {alert.created_at ? ` — ${formatRelativeTime(alert.created_at)}` : ""}
+                {alert.status.toUpperCase()}
+                {alert.timestamp ? ` — ${formatRelativeTime(alert.timestamp)}` : ""}
               </p>
             </div>
           </div>
 
+          {/* Actions */}
           <div className="flex flex-col items-end gap-1.5 shrink-0">
-            {isHistory ? (
+            {isResolved ? (
               <span className="font-mono text-[9px] tracking-[0.08em] px-2 py-1 rounded-md" style={{ color: "var(--green)", background: "var(--green-bg)" }}>
                 ✓ RESOLVED
               </span>
             ) : (
               <>
-                {!alert.acknowledged && (
+                {isActive && (
                   <button
                     onClick={() => onAcknowledge(alert.id)}
                     disabled={isAckPending}
@@ -230,7 +239,7 @@ function AlertCard({
                     {isAckPending ? "…" : "ACKNOWLEDGE"}
                   </button>
                 )}
-                {alert.acknowledged && (
+                {isAcknowledged && (
                   <span className="font-mono text-[9px] tracking-[0.08em] px-2 py-1 rounded-md" style={{ color: "var(--amber)", background: "var(--amber-bg)" }}>
                     IN PROGRESS
                   </span>
@@ -252,12 +261,16 @@ function AlertCard({
           {alert.message}
         </p>
 
-        {alert.acknowledged && !isHistory && alert.acknowledged_by && (
+        {isAcknowledged && alert.acknowledged_at && (
           <p className="font-mono text-[10px] mt-2" style={{ color: "var(--text-muted)" }}>
-            Acknowledged by {alert.acknowledged_by}
-            {alert.acknowledged_at
-              ? ` on ${new Date(alert.acknowledged_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
-              : ""}
+            Acknowledged {new Date(alert.acknowledged_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+          </p>
+        )}
+
+        {isResolved && alert.resolved_at && (
+          <p className="font-mono text-[10px] mt-2" style={{ color: "var(--text-muted)" }}>
+            Resolved {new Date(alert.resolved_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+            {alert.resolution_category ? ` · ${alert.resolution_category.replace(/_/g, " ")}` : ""}
           </p>
         )}
       </div>
@@ -288,42 +301,30 @@ export default function AlertsPage() {
   const { mutate: resolve, isPending: isResolvePending } = useResolveAlert();
 
   const [filter, setFilter] = useState<FilterTab>("active");
-  const [resolveTarget, setResolveTarget] = useState<ExtendedAlert | null>(null);
+  const [resolveTarget, setResolveTarget] = useState<Alert | null>(null);
 
   const handleAcknowledge = (id: number) => acknowledge(id);
 
   const handleResolveSubmit = (note: string, category: ResolutionCategory) => {
     if (!resolveTarget) return;
     resolve(
-      {
-        alertId: resolveTarget.id,
-        payload: {
-          resolution_note: note || null,
-          resolution_category: category,
-        },
-      },
+      { alertId: resolveTarget.id, payload: { resolution_note: note || null, resolution_category: category } },
       { onSettled: () => setResolveTarget(null) },
     );
   };
 
-  const extAlerts = activeAlerts as ExtendedAlert[];
+  // Split active feed by status
+  const unacknowledged = activeAlerts.filter((a) => a.status === "active");
+  const acknowledged   = activeAlerts.filter((a) => a.status === "acknowledged");
+  const activeCount    = unacknowledged.length;
 
-  // Active feed from server
-  const unacknowledgedAlerts = extAlerts.filter((a) => !a.acknowledged);
-  const acknowledgedAlerts   = extAlerts.filter((a) => a.acknowledged);
-  const activeCount          = unacknowledgedAlerts.length;
+  const filtered: Alert[] =
+    filter === "active"       ? unacknowledged
+    : filter === "acknowledged" ? acknowledged
+    : filter === "resolved"     ? historyAlerts
+    : [...activeAlerts, ...historyAlerts];
 
-  // Resolved tab pulls from history endpoint (separate server data)
-  const resolvedAlerts = historyAlerts as ExtendedAlert[];
-
-  const filtered: ExtendedAlert[] =
-    filter === "active"       ? unacknowledgedAlerts
-    : filter === "acknowledged" ? acknowledgedAlerts
-    : filter === "resolved"     ? resolvedAlerts
-    : [...extAlerts, ...resolvedAlerts]; 
-
-  const isFilteredHistory = filter === "resolved";
-  const isLoading_ = filter === "resolved" ? historyLoading : isLoading;
+  const isLoadingTab = filter === "resolved" ? historyLoading : isLoading;
 
   const showError = isError && (() => {
     const status = (error as { response?: { status?: number } })?.response?.status;
@@ -333,15 +334,15 @@ export default function AlertsPage() {
 
   const tabCounts: Record<FilterTab, number> = {
     active:       activeCount,
-    acknowledged: acknowledgedAlerts.length,
-    resolved:     resolvedAlerts.length,
-    all:          extAlerts.length + resolvedAlerts.length,
+    acknowledged: acknowledged.length,
+    resolved:     historyAlerts.length,
+    all:          activeAlerts.length + historyAlerts.length,
   };
 
   const TAB_BADGE: Record<FilterTab, { color: string; bg: string; border: string }> = {
-    active:       { color: "var(--red)",       bg: "var(--red-bg)",   border: "1px solid var(--red)" },
-    acknowledged: { color: "var(--amber)",      bg: "var(--amber-bg)", border: "1px solid var(--amber)" },
-    resolved:     { color: "var(--green)",      bg: "var(--green-bg)", border: "1px solid var(--green)" },
+    active:       { color: "var(--red)",       bg: "var(--red-bg)",   border: "1px solid var(--red)"    },
+    acknowledged: { color: "var(--amber)",      bg: "var(--amber-bg)", border: "1px solid var(--amber)"  },
+    resolved:     { color: "var(--green)",      bg: "var(--green-bg)", border: "1px solid var(--green)"  },
     all:          { color: "var(--text-muted)", bg: "var(--bg-alt)",   border: "1px solid var(--border)" },
   };
 
@@ -349,13 +350,11 @@ export default function AlertsPage() {
     <div className="flex flex-col gap-5">
       <div className="flex justify-between items-end flex-wrap gap-3">
         <div>
-          <h2 className="font-sans text-[20px] font-bold m-0" style={{ color: "var(--text)" }}>
-            Alerts
-          </h2>
+          <h2 className="font-sans text-[20px] font-bold m-0" style={{ color: "var(--text)" }}>Alerts</h2>
           <p className="font-sans text-[13px] mt-1" style={{ color: "var(--text-secondary)" }}>
             {isLoading
               ? "Loading alerts..."
-              : extAlerts.length === 0 && resolvedAlerts.length === 0
+              : activeAlerts.length === 0 && historyAlerts.length === 0
                 ? "No alerts yet — alerts will appear once machine data is uploaded"
                 : `${activeCount} active alert${activeCount !== 1 ? "s" : ""} requiring attention`}
           </p>
@@ -390,7 +389,7 @@ export default function AlertsPage() {
         </div>
       )}
 
-      {isLoading_ ? (
+      {isLoadingTab ? (
         <div className="flex flex-col gap-3">
           {Array.from({ length: 3 }).map((_, i) => <AlertSkeleton key={i} />)}
         </div>
@@ -419,7 +418,7 @@ export default function AlertsPage() {
               onResolve={(a) => setResolveTarget(a)}
               isAckPending={isAckPending}
               isResolvePending={isResolvePending}
-              isHistory={isFilteredHistory}
+              isHistory={filter === "resolved"}
             />
           ))}
         </div>

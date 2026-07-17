@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import {
+  useCurrentUser,
   useTeammates,
   useInvitations,
   useSendInvitation,
   useResendInvitation,
   useRevokeInvitation,
-  useCurrentUser,
 } from "@/hooks/useTeam";
 import type { TeammateResponse, InvitationResponse, UserRole } from "@/lib/type";
 
@@ -17,6 +17,8 @@ function roleStyle(role: UserRole) {
       return { color: "var(--cyan)", bg: "var(--cyan-bg)" };
     case "manager":
       return { color: "var(--amber)", bg: "var(--amber-bg)" };
+    default:
+      return { color: "var(--text-muted)", bg: "var(--bg-alt)" };
     // case "MANAGER":
     //   return { color: "var(--green)", bg: "var(--green-bg)" };
     // case "MEMBER":
@@ -211,7 +213,7 @@ export default function TeamPage() {
         </p>
       </div>
       <div
-        className="rounded-[14px] border p-5 max-w-[600px]"
+        className="rounded-[14px] border p-5 max-w-150"
         style={{ borderColor: "var(--border)", background: "var(--surface)", boxShadow: "var(--card-shadow)" }}
       >
         <p className="font-mono text-[10px] tracking-[0.14em] mb-3" style={{ color: "var(--text-muted)" }}>
@@ -223,7 +225,7 @@ export default function TeamPage() {
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
             placeholder="colleague@company.com"
-            className="flex-1 min-w-[200px] px-3 py-2 rounded-lg border font-mono text-[12px] outline-none transition-colors duration-200"
+            className="flex-1 min-w-50 px-3 py-2 rounded-lg border font-mono text-[12px] outline-none transition-colors duration-200"
             style={{ borderColor: "var(--border)", background: "var(--bg-alt)", color: "var(--text)" }}
             onFocus={(e) => (e.target.style.borderColor = "var(--cyan)")}
             onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
@@ -271,8 +273,8 @@ export default function TeamPage() {
               {teammatesLoading
                 ? Array.from({ length: 3 }).map((_, i) => <RowSkeleton key={i} cols={4} />)
                 : teammates.map((t) => (
-                    <TeammateRow key={t.id} teammate={t} currentUserId={currentUser?.id} />
-                  ))}
+                  <TeammateRow key={t.id} teammate={t} currentUserId={currentUser?.id} />
+                ))}
             </tbody>
           </table>
         </div>
@@ -298,15 +300,15 @@ export default function TeamPage() {
                 {invitationsLoading
                   ? Array.from({ length: 2 }).map((_, i) => <RowSkeleton key={i} cols={4} />)
                   : invitations.map((inv) => (
-                      <InvitationRow
-                        key={inv.id}
-                        invitation={inv}
-                        onRevoke={revoke}
-                        onResend={resend}
-                        isRevoking={isRevoking}
-                        isResending={isResending}
-                      />
-                    ))}
+                    <InvitationRow
+                      key={inv.id}
+                      invitation={inv}
+                      onRevoke={revoke}
+                      onResend={resend}
+                      isRevoking={isRevoking}
+                      isResending={isResending}
+                    />
+                  ))}
               </tbody>
             </table>
           </div>

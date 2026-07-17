@@ -10,7 +10,7 @@ import type {
   MachineSpec,
   MachineTrends,
   MillCreate,
-  MillSummary,
+  MillInfo,
   MillSummaryParams,
   StatsUpdate,
   TaskResponse,
@@ -228,13 +228,13 @@ export const uploadsApi = {
   },
 
   /** GET /api/v1/mill/{mill_id}/summary */
-  getMillSummary: async ({
+  getMillInfo: async ({
     millId,
     startDate,
     endDate,
     machineId,
-  }: MillSummaryParams): Promise<MillSummary> => {
-    const { data } = await axiosInstance.get<MillSummary>(
+  }: MillSummaryParams): Promise<MillInfo> => {
+    const { data } = await axiosInstance.get<MillInfo>(
       `/api/v1/mill/${millId}/summary`,
       {
         params: {

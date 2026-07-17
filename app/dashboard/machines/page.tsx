@@ -52,7 +52,7 @@ export default function MachinesPage() {
         m.machine_id.toUpperCase().includes(q) ||
         m.name.toUpperCase().includes(q) ||
         m.bearing_risk.includes(q) ||
-        m.health_score_breakdown.category.toUpperCase().includes(q),
+        (typeof m.health_score_breakdown?.category === 'string' && m.health_score_breakdown.category.toUpperCase().includes(q)),
     );
   }, [machines, search]);
 
@@ -164,7 +164,7 @@ export default function MachinesPage() {
                 {paginatedTable.map((m) => (
                   <tr
                     key={m.machine_id}
-                    className="transition-colors duration-150 border-t border-(--border) hover:bg-(--surface-hover)"
+                    className="transition-colors duration-150 border-t border-border hover:bg-(--surface-hover)"
                   >
                     <td className="font-mono text-[13px] font-semibold px-4 py-3 text-(--text)">
                       {m.machine_id}

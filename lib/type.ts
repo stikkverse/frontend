@@ -1,13 +1,11 @@
-// ═══════════════════════════════════════════
-// Auth — unchanged
-// ═══════════════════════════════════════════
+// Auth
 export type UserRole = "superadmin" | "admin" | "manager";
 
 export interface UserRegister {
   email: string;
   password: string;
   mill_id: string;
-  role?: UserRole;
+  role?: UserRole | null;
 }
 
 export interface LoginRequest {
@@ -22,15 +20,22 @@ export interface Token {
   mill_id: string | null;
 }
 
+export interface MillInfo {
+  mill_id: string;
+  api_key: string;
+  has_baseline: boolean;
+}
+
+// GET /api/v1/auth/me → UserProfile
 export interface CurrentUser {
   id: number;
   email: string;
-  full_name?: string;
-  role: UserRole;
-  mill_id: string;
+  role: string;
+  created_at: string;
+  mills: MillInfo[];
+  // convenience — derived from mills[0]
+  mill_id?: string;
   mill_name?: string;
-  is_verified?: boolean;
-  created_at?: string;
 }
 
 // Teammate & Invitation — kept for auth flows
@@ -61,15 +66,10 @@ export interface InvitationResponse {
 }
 
 
-// ═══════════════════════════════════════════
 // Dashboard
-// GET /api/v1/dashboard/summary → DashboardSummaryResponse
-// GET /api/v1/dashboard/machines → MachineSummaryResponse[]
-// ═══════════════════════════════════════════
 export type BearingRisk = "HIGH" | "WARNING" | "NORMAL";
 export type MachineStatus = "RUNNING" | "IDLE";
 
-// Updated to match DashboardSummaryResponse schema exactly
 export interface DashboardSummary {
   total_energy_kwh: number;
   total_co2_kg: number;
@@ -92,7 +92,7 @@ export interface ReferenceMetrics {
   baseline_p95: number;
 }
 
-// Updated to match MachineSummaryResponse schema exactly
+// MachineSummaryResponse — from GET /api/v1/dashboard/machines
 export interface DashboardMachine {
   machine_id: string;
   energy_consumption: number;
@@ -112,7 +112,7 @@ export interface MachineSpec {
   };
 }
 
-// Updated to match MachineTrendResponse schema exactly
+// MachineTrendResponse — from GET /api/v1/dashboard/machines/{id}/trends
 export interface MachineTrendPoint {
   date: string;
   energy_kwh: number;
@@ -128,36 +128,38 @@ export interface MachineTrendPoint {
   rolling_30d_current: number | null;
 }
 
-// Trends endpoint now returns an array directly, not a wrapper object
 export type MachineTrends = MachineTrendPoint[];
 
-// ═══════════════════════════════════════════
-// Alerts
-// GET /api/v1/alerts/         — active + acknowledged only
-// GET /api/v1/alerts/history  — resolved only
-// PATCH /api/v1/alerts/{id}/acknowledge
-// PATCH /api/v1/alerts/{id}/resolve
-// ═══════════════════════════════════════════
-export type AlertSeverity = "HIGH" | "WARNING" | "INFO";
 
+// Alerts
+export type AlertStatus = "active" | "acknowledged" | "resolved";
+export type AlertType = "DATA_GAP" | "WARNING" | "CO2_INCREASE";
+
+// AlertItem — actual schema from spec
 export interface Alert {
   id: number;
-  machine_id: string;
-  alert_type: string;
-  severity: AlertSeverity;
+  machine_id: string | null;
+  type: AlertType;
   message: string;
-  created_at: string;
-  acknowledged: boolean;
+  timestamp: string | null;
+  status: AlertStatus;
   acknowledged_at: string | null;
-  acknowledged_by: string | null;
+  resolved_at: string | null;
+  resolution_note: string | null;
+  resolution_category: string | null;
 }
 
-// Updated enum values to match spec exactly
+// AlertActionResponse — returned by acknowledge and resolve
+export interface AlertActionResponse {
+  status: string;
+  alert: Alert;
+}
+
 export type ResolutionCategory =
   | "hardware_fixed"
-  | "software_fix"        // was software_fixed
+  | "software_fix"
   | "false_alarm"
-  | "maintenance"          // was maintenance_scheduled
+  | "maintenance"
   | "other";
 
 export interface AlertResolvePayload {
@@ -165,21 +167,16 @@ export interface AlertResolvePayload {
   resolution_category?: ResolutionCategory | null;
 }
 
-export type AlertStatus = "active" | "acknowledged" | "resolved";
 
-// ═══════════════════════════════════════════
 // Data / Uploads
-// ═══════════════════════════════════════════
 export type ProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 
+// UploadHistoryItem — from GET /api/v1/data/history
 export interface UploadHistoryItem {
-  id: number;
+  mill_id: string;
   filename: string;
-  uploaded_at: string;
-  records_processed: number;
-  total_records: number;
-  status: ProcessingStatus;
-  uploaded_by: string;
+  timestamp: string;  // field name is timestamp, not uploaded_at
+  status: string;
 }
 
 export interface UploadResponse {
@@ -212,10 +209,9 @@ export interface BaselineUpdate {
   p95_current: number;
 }
 
-// ═══════════════════════════════════════════
+
 // Mill Summary
-// GET /api/v1/mill/{mill_id}/summary
-// ═══════════════════════════════════════════
+// GET /api/v1/mill/{mill_id}/summary → MillSummaryResponse
 export interface MillSummaryParams {
   millId: string;
   startDate?: string;
@@ -230,6 +226,7 @@ export interface HealthScoreBreakdown {
   category: string;
 }
 
+// MachineAnalytics 
 export interface MillMachine {
   machine_id: string;
   name: string;
@@ -239,7 +236,7 @@ export interface MillMachine {
   avg_current_A: number;
   reference_metrics: ReferenceMetrics;
   health_score: number;
-  health_score_breakdown: HealthScoreBreakdown;
+  health_score_breakdown: Record<string, unknown>;
   bearing_risk: BearingRisk;
   excess_co2_kg: number;
   insights: string[];
@@ -260,23 +257,8 @@ export interface MillSummaryDetail {
   machines: MillMachine[];
 }
 
-export interface MillSummary {
-  mill_id: string;
-  start_date: string;
-  end_date: string;
-  total_excess_co2_kg: number;
-  avoidable_cost_usd: number;
-  machines: {
-    machine_id: string;
-    total_excess_co2_kg: number;
-    avg_health_score: number;
-    readings_count: number;
-  }[];
-}
 
-// ═══════════════════════════════════════════
 // Admin
-// ═══════════════════════════════════════════
 export interface UserCreate {
   email: string;
   password: string;
@@ -295,9 +277,8 @@ export interface StatsUpdate {
   message: string;
 }
 
-// ═══════════════════════════════════════════
+
 // UI navigation
-// ═══════════════════════════════════════════
 export interface TabItem {
   id: string;
   label: string;

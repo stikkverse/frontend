@@ -9,11 +9,9 @@ import PulseLine from "@/components/dashboard/PulseLine";
 import RiskBadge from "@/components/dashboard/RiskBadge";
 import type { MillMachine } from "@/lib/type";
 import {
-  getRiskColor,
   getHealthColor,
   getHealthLabel,
   getCO2Color,
-  getCategoryColor,
   getInsightClass
 } from "@/lib/helper";
 
@@ -35,7 +33,7 @@ function PenaltyBar({
       <span className="font-mono text-[10px] tracking-[0.08em] text-(--text-muted) w-16 shrink-0 text-right">
         {label}
       </span>
-      <div className="flex-1 h-2 rounded-full bg-(--border) overflow-hidden">
+      <div className="flex-1 h-2 rounded-full bg-border overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-700 ${colorClass}`}
           style={{ width: `${pct}%` }}
@@ -138,9 +136,22 @@ export default function MachineDetailPage() {
 
   const health = machine.health_score ?? 0;
   const risk = machine.bearing_risk ?? "NORMAL";
-  const category = machine.health_score_breakdown?.category ?? "Good";
+  const category =
+    typeof machine.health_score_breakdown?.category === "string"
+      ? machine.health_score_breakdown.category
+      : "Good";
   const isIdle = category.toLowerCase() === "idle";
-  const breakdown = machine.health_score_breakdown;
+  const breakdown = (machine.health_score_breakdown as {
+    load_penalty: number;
+    peak_penalty: number;
+    drift_penalty: number;
+    category: string;
+  }) ?? {
+    load_penalty: 0,
+    peak_penalty: 0,
+    drift_penalty: 0,
+    category,
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -148,7 +159,7 @@ export default function MachineDetailPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/dashboard/machines")}
-            className="flex items-center justify-center w-9 h-9 rounded-lg border border-(--border) bg-(--surface) text-(--text-muted) hover:text-(--cyan) hover:border-(--cyan) transition-colors cursor-pointer"
+            className="flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-(--surface) text-(--text-muted) hover:text-(--cyan) hover:border-(--cyan) transition-colors cursor-pointer"
           >
             <ArrowLeft size={16} />
           </button>

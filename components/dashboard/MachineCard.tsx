@@ -50,7 +50,10 @@ export default function MachineCard({ machine, index }: MachineCardProps) {
   const co2 = machine.excess_co2_kg ?? 0;
   const health = machine.health_score ?? 0;
   const risk = machine.bearing_risk ?? "NORMAL";
-  const category = machine.health_score_breakdown?.category ?? "";
+  const category =
+    typeof machine.health_score_breakdown?.category === "string"
+      ? machine.health_score_breakdown.category
+      : "";
   const isIdle = category.toLowerCase() === "idle";
   const accent = RISK_ACCENT[risk];
 
