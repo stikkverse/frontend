@@ -32,7 +32,7 @@ export default function SuperadminDashboardLayout({
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-(--bg)">
-        <p className="font-mono text-[12px] text-(--text-muted) tracking-[0.1em] animate-pulse">
+        <p className="font-mono text-[12px] text-(--text-muted) tracking-widest animate-pulse">
           LOADING COMMAND CENTER...
         </p>
       </div>
@@ -46,7 +46,6 @@ export default function SuperadminDashboardLayout({
       <BackgroundGrid />
 
       <div className="relative z-2 px-5 pt-7 pb-6 w-[90%] mx-auto h-full flex flex-col">
-        {/* Fixed header + nav */}
         <div
           className="shrink-0 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
           style={{
