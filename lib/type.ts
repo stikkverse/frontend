@@ -128,12 +128,12 @@ export interface MachineTrendPoint {
   rolling_30d_current: number | null;
 }
 
+
 export type MachineTrends = MachineTrendPoint[];
 
 
 // Alerts
 export type AlertStatus = "active" | "acknowledged" | "resolved";
-export type AlertType = "DATA_GAP" | "WARNING" | "CO2_INCREASE";
 
 // AlertItem — actual schema from spec
 export interface Alert {
@@ -149,17 +149,12 @@ export interface Alert {
   resolution_category: string | null;
 }
 
-// AlertActionResponse — returned by acknowledge and resolve
-export interface AlertActionResponse {
-  status: string;
-  alert: Alert;
-}
-
-export type ResolutionCategory =
+// Updated enum values to match spec exactly
+export type ResolutionCategory = 
   | "hardware_fixed"
-  | "software_fix"
+  | "software_fix"       
   | "false_alarm"
-  | "maintenance"
+  | "maintenance"          
   | "other";
 
 export interface AlertResolvePayload {
@@ -285,4 +280,121 @@ export interface TabItem {
   href: string;
   icon?: string;
   badge?: number;
+}
+
+// ═══════════════════════════════════════════
+// Superadmin — matches PlatformHealthResponse, MillActivityItem, AlertOverviewItem
+// ═══════════════════════════════════════════
+
+export interface SystemMetrics {
+  uptime_seconds: number;
+  started_at: string;
+  api_avg_latency_ms: number;
+  api_p95_latency_ms: number;
+  api_total_requests: number;
+  api_error_rate_pct: number;
+}
+
+export interface PlatformMetrics {
+  total_users: number;
+  total_mills: number;
+  mills_with_baseline: number;
+  total_machines: number;
+  active_mills_48h: number;
+  inactive_mills_48h: number;
+}
+
+export interface MachineHealthDistribution {
+  healthy: number;
+  warning: number;
+  critical: number;
+}
+
+export interface AlertsSummary {
+  total_open: number;
+  by_type: Record<string, number>;
+}
+
+export interface ProcessingTasksSummary {
+  pending: number;
+  completed_24h: number;
+  failed_24h: number;
+  stuck: number;
+}
+
+export interface DatabaseStatus {
+  status: string;
+  latency_ms: number;
+}
+
+export interface SentryStatus {
+  status: string;
+}
+
+export interface IotGatewayStatus {
+  status: string;
+  data_points_last_hour: number;
+}
+
+export interface ServiceStatuses {
+  database: DatabaseStatus;
+  sentry: SentryStatus;
+  iot_gateway: IotGatewayStatus;
+}
+
+export interface PlatformHealthResponse {
+  health_score: number;
+  health_level: string;
+  computed_at: string;
+  system: SystemMetrics;
+  platform: PlatformMetrics;
+  machine_health_distribution: MachineHealthDistribution;
+  alerts: AlertsSummary;
+  processing_tasks: ProcessingTasksSummary;
+  services: ServiceStatuses;
+}
+
+export interface MillActivityItem {
+  mill_id: string;
+  owner_email: string;
+  has_baseline: boolean;
+  machine_count: number;
+  last_data_date?: string | null;
+  days_since_last_data?: number | null;
+  avg_health_score_7d?: number | null;
+  open_alerts: number;
+  status: string;
+}
+
+export interface AlertOverviewItem {
+  id: number;
+  mill_id?: string | null;
+  machine_id: string;
+  type: string;
+  message: string;
+  timestamp: string;
+  owner_email: string;
+}
+
+export interface MillInfo {
+  mill_id: string;
+  api_key: string;
+  has_baseline: boolean;
+}
+
+export interface UserProfile {
+  id: number;
+  email: string;
+  role: string;
+  created_at: string;
+  mills: MillInfo[];
+}
+
+// ===========Alert============
+
+export type AlertType = "DATA_GAP" | "WARNING" | "CO2_INCREASE";
+
+export interface AlertActionResponse {
+  status: string;
+  alert: Alert;
 }
