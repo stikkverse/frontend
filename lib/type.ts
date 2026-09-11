@@ -1,11 +1,32 @@
 // Auth
-export type UserRole = "superadmin" | "admin" | "manager";
+export type UserRole = "superadmin" | "admin" | "manager" | "member";
+
+export interface VerifyEmailRequest {
+  token: string;
+}
+
+export type SignupIntent = "create" | "join";
 
 export interface UserRegister {
   email: string;
   password: string;
   mill_id: string;
   role?: UserRole | null;
+  intent: SignupIntent;
+}
+
+export type RegisterOutcome = "account_created" | "approval_queued";
+
+export interface RegisterResponse {
+  status: string;
+  api_key: string | null;
+  message: string;
+  outcome: RegisterOutcome | null;
+}
+
+export interface MillAvailableResponse {
+  mill_id: string;
+  available: boolean;
 }
 
 export interface LoginRequest {
@@ -64,7 +85,6 @@ export interface InvitationResponse {
   is_accepted: boolean;
   created_at: string;
 }
-
 
 // Dashboard
 export type BearingRisk = "HIGH" | "WARNING" | "NORMAL";
@@ -128,9 +148,7 @@ export interface MachineTrendPoint {
   rolling_30d_current: number | null;
 }
 
-
 export type MachineTrends = MachineTrendPoint[];
-
 
 // Alerts
 export type AlertStatus = "active" | "acknowledged" | "resolved";
@@ -150,11 +168,11 @@ export interface Alert {
 }
 
 // Updated enum values to match spec exactly
-export type ResolutionCategory = 
+export type ResolutionCategory =
   | "hardware_fixed"
-  | "software_fix"       
+  | "software_fix"
   | "false_alarm"
-  | "maintenance"          
+  | "maintenance"
   | "other";
 
 export interface AlertResolvePayload {
@@ -162,15 +180,18 @@ export interface AlertResolvePayload {
   resolution_category?: ResolutionCategory | null;
 }
 
-
 // Data / Uploads
-export type ProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type ProcessingStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED";
 
 // UploadHistoryItem — from GET /api/v1/data/history
 export interface UploadHistoryItem {
   mill_id: string;
   filename: string;
-  timestamp: string;  // field name is timestamp, not uploaded_at
+  timestamp: string; // field name is timestamp, not uploaded_at
   status: string;
 }
 
@@ -204,7 +225,6 @@ export interface BaselineUpdate {
   p95_current: number;
 }
 
-
 // Mill Summary
 // GET /api/v1/mill/{mill_id}/summary → MillSummaryResponse
 export interface MillSummaryParams {
@@ -221,7 +241,7 @@ export interface HealthScoreBreakdown {
   category: string;
 }
 
-// MachineAnalytics 
+// MachineAnalytics
 export interface MillMachine {
   machine_id: string;
   name: string;
@@ -252,12 +272,38 @@ export interface MillSummaryDetail {
   machines: MillMachine[];
 }
 
-
 // Admin
 export interface UserCreate {
   email: string;
   password: string;
-  role?: UserRole;
+  role?: "admin" | "manager" | "member";
+}
+
+export interface UserListItem {
+  id: number;
+  email: string;
+  role: string;
+  mill_count: number;
+  created_at: string;
+}
+
+export interface CreateUserResponse {
+  status: string;
+  user_id: number;
+}
+
+export interface PendingApprovalItem {
+  id: number;
+  mill_id: string;
+  email: string;
+  role: string;
+  created_at: string;
+  expires_at: string;
+}
+
+export interface StatusMessage {
+  status: string;
+  message: string;
 }
 
 export interface MillCreate {
@@ -271,7 +317,6 @@ export interface StatsUpdate {
   bearing_risk: string;
   message: string;
 }
-
 
 // UI navigation
 export interface TabItem {
@@ -388,6 +433,31 @@ export interface UserProfile {
   role: string;
   created_at: string;
   mills: MillInfo[];
+}
+
+export interface MachineActivityItem {
+  machine_id: string;
+  health_score: number;
+  bearing_risk: string;
+  total_co2_kg: number;
+  excess_co2_kg: number;
+  total_energy_kwh: number;
+  run_hours: number;
+  last_data_date: string;
+  open_alerts: number;
+}
+
+export interface MillActivityItem {
+  mill_id: string;
+  owner_email: string;
+  has_baseline: boolean;
+  machine_count: number;
+  last_data_date?: string | null;
+  days_since_last_data?: number | null;
+  avg_health_score_7d?: number | null;
+  open_alerts: number;
+  status: string;
+  machines: MachineActivityItem[];
 }
 
 // ===========Alert============
