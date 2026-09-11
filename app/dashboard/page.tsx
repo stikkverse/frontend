@@ -171,7 +171,7 @@ export default function OverviewPage() {
                 return (
                   <div
                     key={m.machine_id}
-                    className="rounded-[10px] border bg-(--surface) p-4 lg:w-[33%] md:w-[33%] w-full"
+                    className="rounded-[10px] border bg-(--surface) p-4 lg:w-[32%] md:w-[32%] w-full mb-4"
                     style={{
                       borderColor: "var(--border)",
                       borderTop: `3px solid ${rc}`,
