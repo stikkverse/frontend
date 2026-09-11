@@ -1,13 +1,18 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useUploadHistory, useBaselines, useTaskStatus } from "@/hooks/useUploads";
+import {
+  useUploadHistory,
+  useBaselines,
+  useTaskStatus,
+} from "@/hooks/useUploads";
 import { useCurrentUser } from "@/hooks/useTeam";
 import ApiKeyPanel from "@/components/dashboard/ApiKeyPanel";
 import UploadInfoCard from "@/components/dashboard/UploadInfo";
 import type { ProcessingStatus, UploadHistoryItem } from "@/lib/type";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
+import { usePermissions } from "@/hooks/usePermissions";
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
@@ -34,10 +39,14 @@ function formatDateShort(value: string | null | undefined): string {
 
 function statusStyle(status: ProcessingStatus) {
   switch (status) {
-    case "COMPLETED": return { color: "var(--green)", bg: "var(--green-bg)" };
-    case "PROCESSING": return { color: "var(--cyan)", bg: "var(--cyan-bg)" };
-    case "PENDING": return { color: "var(--amber)", bg: "var(--amber-bg)" };
-    case "FAILED": return { color: "var(--red)", bg: "var(--red-bg)" };
+    case "COMPLETED":
+      return { color: "var(--green)", bg: "var(--green-bg)" };
+    case "PROCESSING":
+      return { color: "var(--cyan)", bg: "var(--cyan-bg)" };
+    case "PENDING":
+      return { color: "var(--amber)", bg: "var(--amber-bg)" };
+    case "FAILED":
+      return { color: "var(--red)", bg: "var(--red-bg)" };
   }
 }
 
@@ -70,8 +79,12 @@ function LiveStatusCell({
 
   useEffect(() => {
     if (taskData?.status === "COMPLETED") {
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.machines() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboard.summary(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboard.machines(),
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.uploads.history() });
     }
   }, [taskData?.status, queryClient]);
@@ -80,10 +93,15 @@ function LiveStatusCell({
   return (
     <span
       className="font-mono text-[9px] font-semibold tracking-[0.08em] px-2 py-0.5 rounded-full"
-      style={{ color: s.color, background: s.bg, border: `1px solid ${s.color}` }}
+      style={{
+        color: s.color,
+        background: s.bg,
+        border: `1px solid ${s.color}`,
+      }}
     >
       {liveStatus}
-      {(liveStatus === "PROCESSING" || liveStatus === "PENDING") && taskData?.progress
+      {(liveStatus === "PROCESSING" || liveStatus === "PENDING") &&
+      taskData?.progress
         ? ` ${Math.round(taskData.progress)}%`
         : ""}
     </span>
@@ -103,7 +121,9 @@ function useTaskIdMap() {
       try {
         const stored = sessionStorage.getItem("task_id_map");
         if (stored) ref.current = JSON.parse(stored);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     return ref.current[filename] ?? null;
   };
@@ -120,6 +140,7 @@ export default function ApiPage() {
   const { data: baselines = [], isLoading: baselinesLoading } = useBaselines();
   const { data: currentUser } = useCurrentUser();
   const { getTaskId, setTaskId } = useTaskIdMap();
+  const { canWrite } = usePermissions();
 
   const apiKey =
     typeof window !== "undefined"
@@ -137,7 +158,10 @@ export default function ApiPage() {
 
   const raw = uploads[0]?.timestamp;
   const lastUploadDate = raw
-    ? (() => { const d = new Date(raw); return isNaN(d.getTime()) ? "—" : raw.split("T")[0]; })()
+    ? (() => {
+        const d = new Date(raw);
+        return isNaN(d.getTime()) ? "—" : raw.split("T")[0];
+      })()
     : "—";
 
   return (
@@ -171,11 +195,23 @@ export default function ApiPage() {
             Upload Data
           </h3>
           <div className="max-w-150">
-            <UploadInfoCard
-              onTaskCreated={(filename, taskId) => {
-                if (taskId && filename) setTaskId(filename, taskId);
-              }}
-            />
+            {canWrite ? (
+              <UploadInfoCard
+                onTaskCreated={(filename, taskId) => {
+                  if (taskId && filename) setTaskId(filename, taskId);
+                }}
+              />
+            ) : (
+              <div className="rounded-[14px] border border-border bg-(--surface) shadow-(--card-shadow) p-6 text-center">
+                <p className="font-mono text-[10px] tracking-[0.14em] text-(--text-muted) mb-2">
+                  READ-ONLY ACCESS
+                </p>
+                <p className="font-sans text-[13px] text-(--text-secondary)">
+                  Your role can view data and history but cannot upload. Contact
+                  a manager or admin to upload CSV data.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -210,54 +246,55 @@ export default function ApiPage() {
               </tr>
             </thead>
             <tbody>
-              {uploadsLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <TableRowSkeleton key={i} cols={3} />
-                  ))
-                : uploads.length === 0
-                  ? (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="px-4 py-8 text-center font-mono text-[12px]"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        No uploads yet
-                      </td>
-                    </tr>
-                  )
-                  : uploads.map((u: UploadHistoryItem, i: number) => (
-                    <tr
-                      key={`${u.filename}-${i}`}
-                      className="transition-colors duration-150"
-                      style={{ borderTop: "1px solid var(--border)" }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = "var(--surface-hover)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = "transparent")
-                      }
+              {uploadsLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <TableRowSkeleton key={i} cols={3} />
+                ))
+              ) : uploads.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="px-4 py-8 text-center font-mono text-[12px]"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    No uploads yet
+                  </td>
+                </tr>
+              ) : (
+                uploads.map((u: UploadHistoryItem, i: number) => (
+                  <tr
+                    key={`${u.filename}-${i}`}
+                    className="transition-colors duration-150"
+                    style={{ borderTop: "1px solid var(--border)" }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background =
+                        "var(--surface-hover)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    <td
+                      className="font-mono text-[12px] px-4 py-3"
+                      style={{ color: "var(--text)" }}
                     >
-                      <td
-                        className="font-mono text-[12px] px-4 py-3"
-                        style={{ color: "var(--text)" }}
-                      >
-                        {u.filename}
-                      </td>
-                      <td
-                        className="font-mono text-[11px] px-4 py-3"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
-                        {formatDate(u.timestamp)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <LiveStatusCell
-                          taskId={getTaskId(u.filename)}
-                          storedStatus={u.status as ProcessingStatus}
-                        />
-                      </td>
-                    </tr>
-                  ))}
+                      {u.filename}
+                    </td>
+                    <td
+                      className="font-mono text-[11px] px-4 py-3"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      {formatDate(u.timestamp)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <LiveStatusCell
+                        taskId={getTaskId(u.filename)}
+                        storedStatus={u.status as ProcessingStatus}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -275,7 +312,8 @@ export default function ApiPage() {
           className="font-sans text-[12px] mb-3"
           style={{ color: "var(--text-muted)" }}
         >
-          Baseline current readings used for anomaly detection and health scoring
+          Baseline current readings used for anomaly detection and health
+          scoring
         </p>
         <div
           className="overflow-x-auto rounded-[12px] border"
@@ -305,66 +343,67 @@ export default function ApiPage() {
               </tr>
             </thead>
             <tbody>
-              {baselinesLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <TableRowSkeleton key={i} cols={5} />
-                  ))
-                : baselines.length === 0
-                  ? (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="px-4 py-8 text-center font-mono text-[12px]"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        No baselines established yet
-                      </td>
-                    </tr>
-                  )
-                  : baselines.map((b) => (
-                    <tr
-                      key={b.machine_id}
-                      className="transition-colors duration-150"
-                      style={{ borderTop: "1px solid var(--border)" }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = "var(--surface-hover)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = "transparent")
-                      }
+              {baselinesLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <TableRowSkeleton key={i} cols={5} />
+                ))
+              ) : baselines.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-4 py-8 text-center font-mono text-[12px]"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    No baselines established yet
+                  </td>
+                </tr>
+              ) : (
+                baselines.map((b) => (
+                  <tr
+                    key={b.machine_id}
+                    className="transition-colors duration-150"
+                    style={{ borderTop: "1px solid var(--border)" }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background =
+                        "var(--surface-hover)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    <td
+                      className="font-mono text-[13px] font-semibold px-4 py-3"
+                      style={{ color: "var(--text)" }}
                     >
-                      <td
-                        className="font-mono text-[13px] font-semibold px-4 py-3"
-                        style={{ color: "var(--text)" }}
-                      >
-                        {b.machine_id}
-                      </td>
-                      <td
-                        className="font-mono text-[12px] px-4 py-3"
-                        style={{ color: "var(--cyan)" }}
-                      >
-                        {b.mean_current.toFixed(1)}
-                      </td>
-                      <td
-                        className="font-mono text-[12px] px-4 py-3"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
-                        ±{b.std_current.toFixed(1)}
-                      </td>
-                      <td
-                        className="font-mono text-[12px] px-4 py-3"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
-                        {b.p95_current.toFixed(1)}
-                      </td>
-                      <td
-                        className="font-mono text-[11px] px-4 py-3"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        {formatDateShort(b.updated_at)}
-                      </td>
-                    </tr>
-                  ))}
+                      {b.machine_id}
+                    </td>
+                    <td
+                      className="font-mono text-[12px] px-4 py-3"
+                      style={{ color: "var(--cyan)" }}
+                    >
+                      {b.mean_current.toFixed(1)}
+                    </td>
+                    <td
+                      className="font-mono text-[12px] px-4 py-3"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      ±{b.std_current.toFixed(1)}
+                    </td>
+                    <td
+                      className="font-mono text-[12px] px-4 py-3"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      {b.p95_current.toFixed(1)}
+                    </td>
+                    <td
+                      className="font-mono text-[11px] px-4 py-3"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      {formatDateShort(b.updated_at)}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

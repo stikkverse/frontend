@@ -14,15 +14,109 @@ import type {
   MillSummaryParams,
   StatsUpdate,
   TaskResponse,
-  TeammateInvite,
-  TeammateResponse,
-  TeammateUpdate,
+  UserListItem,
+  CreateUserResponse,
+  PendingApprovalItem,
+  StatusMessage,
   UploadHistoryItem,
   UploadResponse,
   UserCreate,
-  InvitationResponse,
+  UserRegister,
+  RegisterResponse,
+  MillAvailableResponse,
 } from "./type";
 
+// Auth — public endpoints (no api-key / no bearer required)
+export const authApi = {
+  /** POST /api/v1/auth/register */
+  register: async (payload: UserRegister): Promise<RegisterResponse> => {
+    const { data } = await axiosInstance.post<RegisterResponse>(
+      "/api/v1/auth/register",
+      payload,
+    );
+    return data;
+  },
+
+  /** GET /api/v1/auth/mill-available?mill_id=X */
+  checkMillAvailable: async (
+    millId: string,
+  ): Promise<MillAvailableResponse> => {
+    const { data } = await axiosInstance.get<MillAvailableResponse>(
+      "/api/v1/auth/mill-available",
+      {
+        params: { mill_id: millId },
+      },
+    );
+    return data;
+  },
+
+  /** POST /api/v1/auth/verify-email */
+  verifyEmail: async (
+    token: string,
+  ): Promise<{ status: string; message: string }> => {
+    const { data } = await axiosInstance.post("/api/v1/auth/verify-email", {
+      token,
+    });
+    return data;
+  },
+
+  /** POST /api/v1/auth/approve-mill-access */
+  approveMillAccess: async (
+    token: string,
+  ): Promise<{ status: string; message: string }> => {
+    const { data } = await axiosInstance.post(
+      "/api/v1/auth/approve-mill-access",
+      { token },
+    );
+    return data;
+  },
+
+  /** POST /api/v1/auth/forgot-password */
+  forgotPassword: async (
+    email: string,
+  ): Promise<{ status: string; message: string }> => {
+    const { data } = await axiosInstance.post("/api/v1/auth/forgot-password", {
+      email,
+    });
+    return data;
+  },
+
+  /** POST /api/v1/auth/reset-password */
+  resetPassword: async (
+    token: string,
+    newPassword: string,
+  ): Promise<{ status: string; message: string }> => {
+    const { data } = await axiosInstance.post("/api/v1/auth/reset-password", {
+      token,
+      new_password: newPassword,
+    });
+    return data;
+  },
+
+  /** POST /api/v1/auth/magic-link */
+  requestMagicLink: async (
+    email: string,
+  ): Promise<{ status: string; message: string }> => {
+    const { data } = await axiosInstance.post("/api/v1/auth/magic-link", {
+      email,
+    });
+    return data;
+  },
+
+  /** POST /api/v1/auth/magic-login → returns Token */
+  magicLogin: async (
+    token: string,
+  ): Promise<{
+    access_token: string;
+    api_key: string | null;
+    mill_id: string | null;
+  }> => {
+    const { data } = await axiosInstance.post("/api/v1/auth/magic-login", {
+      token,
+    });
+    return data;
+  },
+};
 
 export const dashboardApi = {
   /** GET /api/v1/dashboard/summary?date={date} */
@@ -63,7 +157,6 @@ export const dashboardApi = {
   },
 };
 
-
 // Alerts   — x-api-key secured
 export const alertsApi = {
   /** GET /api/v1/alerts/ — active + acknowledged alerts only */
@@ -78,9 +171,12 @@ export const alertsApi = {
     limit?: number;
     offset?: number;
   }): Promise<Alert[]> => {
-    const { data } = await axiosInstance.get<Alert[]>("/api/v1/alerts/history", {
-      params,
-    });
+    const { data } = await axiosInstance.get<Alert[]>(
+      "/api/v1/alerts/history",
+      {
+        params,
+      },
+    );
     return data;
   },
 
@@ -97,7 +193,6 @@ export const alertsApi = {
     await axiosInstance.patch(`/api/v1/alerts/${alertId}/resolve`, payload);
   },
 };
-
 
 export const uploadsApi = {
   /** GET /api/v1/data/history */
@@ -248,52 +343,58 @@ export const uploadsApi = {
   },
 };
 
-
 // Auth / Team
 export const teamApi = {
+  /** GET /api/v1/auth/me → UserProfile */
   getCurrentUser: async (): Promise<CurrentUser> => {
     const { data } = await axiosInstance.get<CurrentUser>("/api/v1/auth/me");
     return data;
   },
-  getTeammates: async (): Promise<TeammateResponse[]> => {
-    const { data } = await axiosInstance.get<TeammateResponse[]>("/api/v1/auth/teammates");
+
+  /** GET /api/v1/admin/users → users this admin created */
+  getMembers: async (): Promise<UserListItem[]> => {
+    const { data } = await axiosInstance.get<UserListItem[]>(
+      "/api/v1/admin/users",
+    );
     return data;
   },
-  updateTeammateRole: async (userId: number, payload: TeammateUpdate): Promise<void> => {
-    await axiosInstance.put(`/api/v1/auth/teammates/${userId}/role`, payload);
-  },
-  removeTeammate: async (userId: number): Promise<void> => {
-    await axiosInstance.delete(`/api/v1/auth/teammates/${userId}`);
-  },
-  getInvitations: async (): Promise<InvitationResponse[]> => {
-    const { data } = await axiosInstance.get<InvitationResponse[]>("/api/v1/auth/invitations");
+
+  /** POST /api/v1/admin/users */
+  createMember: async (payload: UserCreate): Promise<CreateUserResponse> => {
+    const { data } = await axiosInstance.post<CreateUserResponse>(
+      "/api/v1/admin/users",
+      payload,
+    );
     return data;
   },
-  sendInvitation: async (payload: TeammateInvite): Promise<InvitationResponse> => {
-    const { data } = await axiosInstance.post<InvitationResponse>("/api/v1/auth/invite", payload);
+
+  /** DELETE /api/v1/admin/users/{user_id} — revoke access */
+  revokeMember: async (userId: number): Promise<StatusMessage> => {
+    const { data } = await axiosInstance.delete<StatusMessage>(
+      `/api/v1/admin/users/${userId}`,
+    );
     return data;
   },
-  resendInvitation: async (id: number): Promise<void> => {
-    await axiosInstance.post(`/api/v1/auth/invitations/${id}/resend`);
+
+  /** GET /api/v1/admin/pending-approvals */
+  getPendingApprovals: async (): Promise<PendingApprovalItem[]> => {
+    const { data } = await axiosInstance.get<PendingApprovalItem[]>(
+      "/api/v1/admin/pending-approvals",
+    );
+    return data;
   },
-  revokeInvitation: async (id: number): Promise<void> => {
-    await axiosInstance.delete(`/api/v1/auth/invitations/${id}`);
+
+  /** DELETE /api/v1/admin/pending-approvals/{request_id} — reject */
+  rejectApproval: async (requestId: number): Promise<StatusMessage> => {
+    const { data } = await axiosInstance.delete<StatusMessage>(
+      `/api/v1/admin/pending-approvals/${requestId}`,
+    );
+    return data;
   },
 };
 
-
 // Admin
 export const adminApi = {
-  listUsers: async (): Promise<unknown[]> => {
-    const { data } = await axiosInstance.get<unknown[]>("/api/v1/admin/users");
-    return data;
-  },
-  createUser: async (payload: UserCreate): Promise<void> => {
-    await axiosInstance.post("/api/v1/admin/users", payload);
-  },
-  resetUserPassword: async (userId: number, payload: { password: string }): Promise<void> => {
-    await axiosInstance.put(`/api/v1/admin/users/${userId}/reset-password`, payload);
-  },
   listMills: async (): Promise<unknown[]> => {
     const { data } = await axiosInstance.get<unknown[]>("/api/v1/admin/mills");
     return data;
@@ -302,10 +403,15 @@ export const adminApi = {
     await axiosInstance.post("/api/v1/admin/mills", payload);
   },
   getGlobalUploadHistory: async (): Promise<unknown[]> => {
-    const { data } = await axiosInstance.get<unknown[]>("/api/v1/admin/uploads");
+    const { data } = await axiosInstance.get<unknown[]>(
+      "/api/v1/admin/uploads",
+    );
     return data;
   },
-  correctMachineStats: async (statsId: number, payload: StatsUpdate): Promise<void> => {
+  correctMachineStats: async (
+    statsId: number,
+    payload: StatsUpdate,
+  ): Promise<void> => {
     await axiosInstance.put(`/api/v1/admin/stats/${statsId}`, payload);
   },
 };

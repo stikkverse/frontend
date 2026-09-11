@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AuthContext } from "@/lib/authContext";
 import axiosInstance from "@/lib/axiosInstance";
 import type { CurrentUser } from "@/lib/type";
+import type { UserRegister, RegisterResponse } from "@/lib/type";
 
 export default function AuthProvider({
   children,
@@ -60,23 +61,24 @@ export default function AuthProvider({
     router.push("/dashboard");
   };
 
-  const verifysignup = async (payload: {
-    email: string;
-    password: string;
-    full_name: string;
-    mill_name: string;
-    mill_tag: string;
-  }) => {
-    await axiosInstance.post("/api/v1/auth/register", payload);
+  const loginWithToken = async (
+    accessToken: string,
+    apiKey?: string | null,
+    millId?: string | null,
+  ) => {
+    localStorage.setItem("access_token", accessToken);
+    if (apiKey) localStorage.setItem("api_key", apiKey);
+    if (millId) localStorage.setItem("mill_id", millId);
+    await fetchUser();
+    router.push("/dashboard");
   };
 
-  const signup = async (payload: {
-    email: string;
-    password: string;
-    mill_id: string;
-    role: "admin" | "manager";
-  }) => {
-    await axiosInstance.post("/api/v1/auth/register", payload);
+  const signup = async (payload: UserRegister): Promise<RegisterResponse> => {
+    const { data } = await axiosInstance.post<RegisterResponse>(
+      "/api/v1/auth/register",
+      payload,
+    );
+    return data;
   };
 
   const logout = async () => {
@@ -100,7 +102,7 @@ export default function AuthProvider({
         isAuthenticated: !!user,
         isLoading,
         login,
-        verifysignup,
+        loginWithToken,
         signup,
         logout,
       }}

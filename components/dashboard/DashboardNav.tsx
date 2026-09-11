@@ -9,6 +9,7 @@ import { IoWarning } from "react-icons/io5";
 import { FiUploadCloud } from "react-icons/fi";
 import { HiUsers } from "react-icons/hi2";
 import type { IconType } from "react-icons";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface NavTab {
   value: string;
@@ -26,20 +27,58 @@ interface DashboardNavProps {
 export default function DashboardNav({ alertCount = 0 }: DashboardNavProps) {
   const pathname = usePathname();
   const segments = pathname.split("/");
+  const { canManageUsers } = usePermissions();
 
-  const activeTab = segments.includes("machines") ? "machines"
-    : segments.includes("alerts") ? "alerts"
-    : segments.includes("api") ? "api"
-    : segments.includes("team") ? "team"
-    : "overview";
+  const activeTab = segments.includes("machines")
+    ? "machines"
+    : segments.includes("alerts")
+      ? "alerts"
+      : segments.includes("api")
+        ? "api"
+        : segments.includes("team")
+          ? "team"
+          : "overview";
 
-  const tabs: NavTab[] = [
-    { value: "overview", href: "/dashboard",          label: "Overview",      icon: RiDashboard2Fill, color: "#22d3ee" },
-    { value: "machines", href: "/dashboard/machines", label: "Machines",      icon: GiGears,          color: "#a78bfa" },
-    { value: "alerts",   href: "/dashboard/alerts",   label: "Alerts",        icon: IoWarning,        color: "#fbbf24", badge: alertCount },
-    { value: "api",      href: "/dashboard/api",      label: "API & Uploads", icon: FiUploadCloud,    color: "#34d399" },
-    { value: "team",     href: "/dashboard/team",     label: "Team",          icon: HiUsers,          color: "#f472b6" },
+  const allTabs: NavTab[] = [
+    {
+      value: "overview",
+      href: "/dashboard",
+      label: "Overview",
+      icon: RiDashboard2Fill,
+      color: "#22d3ee",
+    },
+    {
+      value: "machines",
+      href: "/dashboard/machines",
+      label: "Machines",
+      icon: GiGears,
+      color: "#a78bfa",
+    },
+    {
+      value: "alerts",
+      href: "/dashboard/alerts",
+      label: "Alerts",
+      icon: IoWarning,
+      color: "#fbbf24",
+      badge: alertCount,
+    },
+    {
+      value: "api",
+      href: "/dashboard/api",
+      label: "API & Uploads",
+      icon: FiUploadCloud,
+      color: "#34d399",
+    },
+    {
+      value: "team",
+      href: "/dashboard/team",
+      label: "Team",
+      icon: HiUsers,
+      color: "#f472b6",
+    },
   ];
+
+  const tabs = allTabs.filter((t) => t.value !== "team" || canManageUsers);
 
   return (
     <Tabs value={activeTab} className="w-full">
@@ -54,12 +93,17 @@ export default function DashboardNav({ alertCount = 0 }: DashboardNavProps) {
               asChild
               className="py-4 shrink-0"
             >
-              <Link href={tab.href} className="no-underline flex items-center gap-1.5">
+              <Link
+                href={tab.href}
+                className="no-underline flex items-center gap-1.5"
+              >
                 <Icon
                   size={15}
                   style={{
                     color: tab.color,
-                    filter: isActive ? `drop-shadow(0 0 6px ${tab.color})` : "none",
+                    filter: isActive
+                      ? `drop-shadow(0 0 6px ${tab.color})`
+                      : "none",
                     transition: "filter 0.2s ease",
                   }}
                 />
