@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { MillMachine, BearingRisk } from "@/lib/type";
+import type { MillMachine, BearingRisk } from "@/lib/database/type";
 import RiskBadge from "./RiskBadge";
 import HealthRing from "./HealthRing";
 import PulseLine from "./PulseLine";
-import { getInsightClass } from "@/lib/helper";
+import { getInsightClass } from "@/lib/database/helper";
 
 interface MachineCardProps {
   machine: MillMachine;

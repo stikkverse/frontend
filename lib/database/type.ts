@@ -399,18 +399,6 @@ export interface PlatformHealthResponse {
   services: ServiceStatuses;
 }
 
-export interface MillActivityItem {
-  mill_id: string;
-  owner_email: string;
-  has_baseline: boolean;
-  machine_count: number;
-  last_data_date?: string | null;
-  days_since_last_data?: number | null;
-  avg_health_score_7d?: number | null;
-  open_alerts: number;
-  status: string;
-}
-
 export interface AlertOverviewItem {
   id: number;
   mill_id?: string | null;
@@ -419,12 +407,6 @@ export interface AlertOverviewItem {
   message: string;
   timestamp: string;
   owner_email: string;
-}
-
-export interface MillInfo {
-  mill_id: string;
-  api_key: string;
-  has_baseline: boolean;
 }
 
 export interface UserProfile {

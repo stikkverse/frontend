@@ -6,9 +6,9 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Sparkles, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { loginSchema, type LoginFormValues } from "@/lib/schema";
-import { useAuth } from "@/lib/authContext";
-import { authApi } from "@/lib/api";
+import { loginSchema, type LoginFormValues } from "@/lib/database/schema";
+import { useAuth } from "@/lib/auth/authContext";
+import { authApi } from "@/lib/database/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {

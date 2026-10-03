@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
-import { useAuth } from "@/lib/authContext";
+import { useAuth } from "@/lib/auth/authContext";
 import Logo from "./Logo";
 
 export default function Header() {

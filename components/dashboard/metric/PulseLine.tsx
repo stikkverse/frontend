@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { BearingRisk } from "@/lib/type";
+import type { BearingRisk } from "@/lib/database/type";
 
 interface PulseLineProps {
   color: string;

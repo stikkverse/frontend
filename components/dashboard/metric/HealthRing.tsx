@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getHealthColor } from "@/lib/helper";
+import { getHealthColor } from "@/lib/database/helper";
 
 interface HealthRingProps {
   score: number;

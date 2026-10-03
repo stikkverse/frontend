@@ -8,8 +8,8 @@ import {
   useUploadBaselineUpdate,
   useTaskStatus,
 } from "@/hooks/useUploads";
-import { queryKeys } from "@/lib/queryKeys";
-import type { ProcessingStatus } from "@/lib/type";
+import { queryKeys } from "@/lib/database/queryKeys";
+import type { ProcessingStatus } from "@/lib/database/type";
 
 type UploadMode = "operational" | "baseline-initial" | "baseline-update";
 
