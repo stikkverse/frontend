@@ -4,11 +4,23 @@ import type {
   PlatformHealthResponse,
   MillActivityItem,
   AlertOverviewItem,
-} from "@/lib/type";
+} from "@/lib/database/type";
+
+export type MillSortKey =
+  | "mill_id"
+  | "owner_email"
+  | "machine_count"
+  | "last_data_date"
+  | "avg_health_score_7d"
+  | "open_alerts"
+  | "status";
+
+export type SortOrder = "asc" | "desc";
 
 const SA_KEYS = {
   health: () => ["superadmin", "health"] as const,
-  millsActivity: () => ["superadmin", "mills-activity"] as const,
+  millsActivity: (sortBy: MillSortKey, order: SortOrder) =>
+    ["superadmin", "mills-activity", sortBy, order] as const,
   alertsOverview: () => ["superadmin", "alerts-overview"] as const,
 };
 
@@ -24,17 +36,22 @@ export function usePlatformHealth() {
   });
 }
 
-export function useMillsActivity() {
+export function useMillsActivity(
+  sortBy: MillSortKey = "status",
+  order: SortOrder = "desc",
+) {
   return useQuery<MillActivityItem[]>({
-    queryKey: SA_KEYS.millsActivity(),
+    queryKey: SA_KEYS.millsActivity(sortBy, order),
     queryFn: async () => {
       const { data } = await superadminAxios.get(
         "/api/v1/superadmin/mills/activity",
+        { params: { sort_by: sortBy, order } },
       );
       return Array.isArray(data) ? data : [];
     },
     staleTime: 60_000,
     refetchInterval: 60_000,
+    placeholderData: (prev) => prev,
   });
 }
 

@@ -14,8 +14,8 @@ import {
   UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
-import { signupSchema, type SignupFormValues } from "@/lib/schema";
-import { useAuth } from "@/lib/authContext";
+import { signupSchema, type SignupFormValues } from "@/lib/database/schema";
+import { useAuth } from "@/lib/auth/authContext";
 import { useMillAvailability } from "@/hooks/useMillAvailability";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import type { RegisterOutcome } from "@/lib/type";
+import type { RegisterOutcome } from "@/lib/database/type";
 
 type Mode = "create" | "join";
 

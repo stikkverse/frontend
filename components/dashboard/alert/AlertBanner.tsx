@@ -1,6 +1,6 @@
 "use client";
 
-import type { MillMachine } from "@/lib/type";
+import type { MillMachine } from "@/lib/database/type";
 
 interface AlertBannerProps {
   machines: MillMachine[];

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { UserProfile } from "@/lib/type";
+import type { UserProfile } from "@/lib/database/type";
 
 interface SuperadminAuthContextValue {
   user: UserProfile | null;

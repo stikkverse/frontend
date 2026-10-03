@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { uploadsApi } from "@/lib/api";
-import type { BaselineUpdate, Baseline, UploadHistoryItem } from "@/lib/type";
-import { queryKeys } from "@/lib/queryKeys";
+import { uploadsApi } from "@/lib/database/api";
+import type { BaselineUpdate, Baseline, UploadHistoryItem } from "@/lib/database/type";
+import { queryKeys } from "@/lib/database/queryKeys";
 
 /** GET /api/v1/data/history */
 export function useUploadHistory() {

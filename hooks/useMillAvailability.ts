@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { authApi } from "@/lib/api";
+import { authApi } from "@/lib/database/api";
 
 export type AvailabilityState =
   | "idle"

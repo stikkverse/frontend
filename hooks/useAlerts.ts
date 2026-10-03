@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { alertsApi } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import type { Alert, AlertResolvePayload } from "@/lib/type";
+import { alertsApi } from "@/lib/database/api";
+import { queryKeys } from "@/lib/database/queryKeys";
+import type { Alert, AlertResolvePayload } from "@/lib/database/type";
 
 // Module-level set so acknowledged IDs survive React Query refetches
 const acknowledgedIds = new Set<number>();
 
-/**
+/**databa
  * GET /api/v1/alerts/
  * Returns AlertItem[] — active + acknowledged only.
  * Each alert has a `status` field: "active" | "acknowledged" | "resolved"

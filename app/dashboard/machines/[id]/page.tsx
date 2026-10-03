@@ -4,16 +4,16 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMillSummary } from "@/hooks/useMillSummary";
 import { ArrowLeft } from "lucide-react";
-import HealthRing from "@/components/dashboard/HealthRing";
-import PulseLine from "@/components/dashboard/PulseLine";
-import RiskBadge from "@/components/dashboard/RiskBadge";
-import type { MillMachine } from "@/lib/type";
+import HealthRing from "@/components/dashboard/metric/HealthRing";
+import PulseLine from "@/components/dashboard/metric/PulseLine";
+import RiskBadge from "@/components/dashboard/metric/RiskBadge";
+import type { MillMachine } from "@/lib/database/type";
 import {
   getHealthColor,
   getHealthLabel,
   getCO2Color,
-  getInsightClass
-} from "@/lib/helper";
+  getInsightClass,
+} from "@/lib/database/helper";
 
 function PenaltyBar({
   label,
@@ -175,66 +175,64 @@ export default function MachineDetailPage() {
         <div className="flex items-center gap-3">
           <RiskBadge category={category} />
         </div>
-        
       </div>
       <div className="flex justify-between lg:flex-row md:flex-row flex-col">
         <div className="lg:w-[50%] md:w-[50%] w-full">
-        <div className="rounded-[14px] border border-border bg-(--surface) shadow-(--card-shadow) overflow-hidden">
-          <div className="flex items-center gap-8 p-6 lg:flex-row md:flex-row flex-col">
-            <div className="flex flex-col items-center gap-2">
-              <HealthRing score={health} size={140} />
-              <span className="font-mono text-[11px] tracking-[0.08em] text-(--text-muted)">
-                {getHealthLabel(health)}
-              </span>
-            </div>
-               
-            <div className="flex-1">
-              <p className="font-mono text-[10px] tracking-[0.14em] text-(--text-muted) mb-3">
-                HEALTH SCORE BREAKDOWN
-              </p>
-              <div className="flex flex-col gap-3">
-                <PenaltyBar label="LOAD" value={breakdown.load_penalty} />
-                <PenaltyBar label="PEAK" value={breakdown.peak_penalty} />
-                <PenaltyBar label="DRIFT" value={breakdown.drift_penalty} />
+          <div className="rounded-[14px] border border-border bg-(--surface) shadow-(--card-shadow) overflow-hidden">
+            <div className="flex items-center gap-8 p-6 lg:flex-row md:flex-row flex-col">
+              <div className="flex flex-col items-center gap-2">
+                <HealthRing score={health} size={140} />
+                <span className="font-mono text-[11px] tracking-[0.08em] text-(--text-muted)">
+                  {getHealthLabel(health)}
+                </span>
               </div>
-              <p className="font-mono text-[10px] text-(--text-muted) mt-3">
-                Total penalty:{" "}
-                {breakdown.load_penalty +
-                  breakdown.peak_penalty +
-                  breakdown.drift_penalty}{" "}
-                pts → Health: {health}/100
-              </p>
+
+              <div className="flex-1">
+                <p className="font-mono text-[10px] tracking-[0.14em] text-(--text-muted) mb-3">
+                  HEALTH SCORE BREAKDOWN
+                </p>
+                <div className="flex flex-col gap-3">
+                  <PenaltyBar label="LOAD" value={breakdown.load_penalty} />
+                  <PenaltyBar label="PEAK" value={breakdown.peak_penalty} />
+                  <PenaltyBar label="DRIFT" value={breakdown.drift_penalty} />
+                </div>
+                <p className="font-mono text-[10px] text-(--text-muted) mt-3">
+                  Total penalty:{" "}
+                  {breakdown.load_penalty +
+                    breakdown.peak_penalty +
+                    breakdown.drift_penalty}{" "}
+                  pts → Health: {health}/100
+                </p>
+              </div>
             </div>
+            <PulseLine
+              color={getHealthColor(health)}
+              risk={risk}
+              muted={isIdle}
+            />
           </div>
-          <PulseLine
-            color={getHealthColor(health)}
-            risk={risk}
-            muted={isIdle}
-          />
-          
-        </div>
-        <p className="font-mono text-[10px] tracking-[0.14em] text-(--text-muted) mt-4 mb-2">
+          <p className="font-mono text-[10px] tracking-[0.14em] text-(--text-muted) mt-4 mb-2">
             INSIGHTS &amp; DIAGNOSTICS
           </p>
-        {machine.insights.length > 0 ? (
-              <div className="flex gap-3 mb-4">
-                {machine.insights.map((insight) => (
-                  <div
-                    key={insight}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border ${getInsightClass(insight)}`}
-                  >
-                    <span className="font-mono text-[11px] font-semibold tracking-[0.04em]">
-                      {insight}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="font-mono text-[12px] text-(--text-muted) py-4 text-center">
-                No active insights
-              </p>
-            )}
+          {machine.insights.length > 0 ? (
+            <div className="flex gap-3 mb-4">
+              {machine.insights.map((insight) => (
+                <div
+                  key={insight}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border ${getInsightClass(insight)}`}
+                >
+                  <span className="font-mono text-[11px] font-semibold tracking-[0.04em]">
+                    {insight}
+                  </span>
+                </div>
+              ))}
             </div>
+          ) : (
+            <p className="font-mono text-[12px] text-(--text-muted) py-4 text-center">
+              No active insights
+            </p>
+          )}
+        </div>
         <div className="flex justify-between items-center flex-wrap lg:w-[47%] md:w-[47%] w-full">
           <StatCard
             label="EXCESS CO₂"

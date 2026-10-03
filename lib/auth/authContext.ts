@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { CurrentUser, UserRegister, RegisterResponse } from "@/lib/type";
+import type { CurrentUser, UserRegister, RegisterResponse } from "@/lib/database/type";
 
 interface AuthContextValue {
   user: CurrentUser | null;

@@ -7,11 +7,11 @@ import {
   useTaskStatus,
 } from "@/hooks/useUploads";
 import { useCurrentUser } from "@/hooks/useTeam";
-import ApiKeyPanel from "@/components/dashboard/ApiKeyPanel";
-import UploadInfoCard from "@/components/dashboard/UploadInfo";
-import type { ProcessingStatus, UploadHistoryItem } from "@/lib/type";
+import ApiKeyPanel from "@/components/dashboard/upload/ApiKeyPanel";
+import UploadInfoCard from "@/components/dashboard/upload/UploadInfo";
+import type { ProcessingStatus, UploadHistoryItem } from "@/lib/database/type";
 import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queryKeys";
+import { queryKeys } from "@/lib/database/queryKeys";
 import { usePermissions } from "@/hooks/usePermissions";
 
 function formatDate(value: string | null | undefined): string {
@@ -132,7 +132,6 @@ function useTaskIdMap() {
 }
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-// Computed once at module load time — outside component to avoid impure-function lint error
 const SEVEN_DAYS_AGO = new Date(Date.now() - SEVEN_DAYS_MS);
 
 export default function ApiPage() {
@@ -215,8 +214,6 @@ export default function ApiPage() {
           </div>
         </div>
       </div>
-
-      {/* Upload History */}
       <div>
         <h3
           className="font-sans text-base font-semibold mb-3"
@@ -299,8 +296,6 @@ export default function ApiPage() {
           </table>
         </div>
       </div>
-
-      {/* Baselines */}
       <div>
         <h3
           className="font-sans text-base font-semibold mb-3"

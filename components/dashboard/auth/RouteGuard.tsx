@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePermissions } from "@/hooks/usePermissions";
-import { useAuth } from "@/lib/authContext";
+import { useAuth } from "@/lib/auth/authContext";
 
 export default function RequireManageUsers({
   children,

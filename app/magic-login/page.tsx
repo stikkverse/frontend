@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useAuth } from "@/lib/authContext";
-import { authApi } from "@/lib/api";
+import { useAuth } from "@/lib/auth/authContext";
+import { authApi } from "@/lib/database/api";
 import { Button } from "@/components/ui/button";
 import NavBar from "@/components/auth/NavBar";
 

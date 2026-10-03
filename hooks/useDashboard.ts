@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { dashboardApi } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import type { DashboardSummary, DashboardMachine, MachineSpec } from "@/lib/type";
+import { dashboardApi } from "@/lib/database/api";
+import { queryKeys } from "@/lib/database/queryKeys";
+import type { DashboardSummary, DashboardMachine, MachineSpec } from "@/lib/database/type";
 
-// Updated to match DashboardSummaryResponse schema
 const EMPTY_SUMMARY: DashboardSummary = {
   total_energy_kwh: 0,
   total_co2_kg: 0,

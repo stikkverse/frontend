@@ -1,8 +1,8 @@
 "use client";
 
 import { Sun, Moon, Monitor } from "lucide-react";
-import { useTheme } from "@/lib/ThemeContext";
-import type { ThemePreference } from "@/lib/ThemeContext";
+import { useTheme } from "@/lib/context/ThemeContext";
+import type { ThemePreference } from "@/lib/context/ThemeContext";
 
 const OPTIONS: { pref: ThemePreference; Icon: typeof Sun; label: string }[] = [
   { pref: "light", Icon: Sun, label: "Light mode" },

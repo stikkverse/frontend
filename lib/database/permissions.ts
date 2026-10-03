@@ -1,4 +1,4 @@
-import type { UserRole } from "@/lib/type";
+import type { UserRole } from "./type";
 
 export const ROLE_RANK: Record<UserRole, number> = {
   member: 1,

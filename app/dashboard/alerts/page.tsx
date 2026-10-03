@@ -7,7 +7,7 @@ import {
   useAcknowledgeAlert,
   useResolveAlert,
 } from "@/hooks/useAlerts";
-import type { Alert, AlertType, ResolutionCategory } from "@/lib/type";
+import type { Alert, AlertType, ResolutionCategory } from "@/lib/database/type";
 import {
   Dialog,
   DialogContent,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ThemeContext } from "@/lib/ThemeContext";
+import { ThemeContext } from "@/lib/context/ThemeContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AuthProvider from "./AuthProvider";
 
