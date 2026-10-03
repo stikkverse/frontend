@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import axiosInstance from "@/lib/axiosInstance";
-import { queryKeys } from "@/lib/queryKeys";
+import axiosInstance from "@/lib/database/axiosInstance";
+import { queryKeys } from "@/lib/database/queryKeys";
 import type {
   MillSummaryDetail,
   MillSummaryParams,
   SummaryMetrics,
   MillMachine,
-} from "@/lib/type";
+} from "@/lib/database/type";
 
 
 export type { MillSummaryDetail, MillSummaryParams, SummaryMetrics, MillMachine };

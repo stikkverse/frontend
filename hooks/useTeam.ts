@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { teamApi } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import type { UserCreate, UserListItem, PendingApprovalItem } from "@/lib/type";
+import { teamApi } from "@/lib/database/api";
+import { queryKeys } from "@/lib/database/queryKeys";
+import type { UserCreate, UserListItem, PendingApprovalItem } from "@/lib/database/type";
 
 /** GET /api/v1/auth/me → reshaped with a convenient mill_id */
 export function useCurrentUser() {
