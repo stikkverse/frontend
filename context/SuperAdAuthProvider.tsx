@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { SuperadminAuthContext } from "@/lib/superadmin/superadminContext";
 import superadminAxios from "@/lib/superadmin/superadminAxios";
-import type { UserProfile } from "@/lib/type";
+import type { UserProfile } from "@/lib/database/type";
 
 export default function SuperadminAuthProvider({
   children,

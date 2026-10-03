@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { AuthContext } from "@/lib/authContext";
-import axiosInstance from "@/lib/axiosInstance";
-import type { CurrentUser } from "@/lib/type";
-import type { UserRegister, RegisterResponse } from "@/lib/type";
+import { AuthContext } from "@/lib/auth/authContext";
+import axiosInstance from "@/lib/database/axiosInstance";
+import type { CurrentUser, UserRegister, RegisterResponse } from "@/lib/database/type";
 
 export default function AuthProvider({
   children,

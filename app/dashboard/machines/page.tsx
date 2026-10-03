@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useMillMachines } from "@/hooks/useMillSummary";
 import SearchBar from "@/components/dashboard/SearchBar";
-import MachineCard from "@/components/dashboard/MachineCard";
+import MachineCard from "@/components/dashboard/metric/MachineCard";
 import Pagination from "@/components/ui/pagination";
 import Link from "next/link";
 
@@ -56,7 +56,6 @@ export default function MachinesPage() {
     );
   }, [machines, search]);
 
-  // Cards pagination
   const cardsTotalPages = Math.ceil(filtered.length / CARDS_PER_PAGE);
   const paginatedCards = useMemo(
     () =>
@@ -67,7 +66,6 @@ export default function MachinesPage() {
     [filtered, cardsPage],
   );
 
-  // Table pagination
   const tableTotalPages = Math.ceil(machines.length / TABLE_ROWS_PER_PAGE);
   const paginatedTable = useMemo(
     () =>

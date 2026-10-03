@@ -96,7 +96,7 @@ function HealthSkeleton() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="flex-1 min-w-35 rounded-[12px] border border-borderbg-(--surface) p-4 h-20"
+            className="flex-1 min-w-35 rounded-[12px] border border-border bg-(--surface) p-4 h-20"
           />
         ))}
       </div>
@@ -204,20 +204,26 @@ export default function PlatformHealthPage() {
               <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
                 {dist.healthy > 0 && (
                   <div
-                    className="rounded-full bg-(--green)"
-                    style={{ flex: dist.healthy }}
+                    className="grow rounded-full bg-(--green)"
+                    style={{
+                      flexBasis: `${(dist.healthy / distTotal) * 100}%`,
+                    }}
                   />
                 )}
                 {dist.warning > 0 && (
                   <div
-                    className="rounded-full bg-(--amber)"
-                    style={{ flex: dist.warning }}
+                    className="grow rounded-full bg-(--amber)"
+                    style={{
+                      flexBasis: `${(dist.warning / distTotal) * 100}%`,
+                    }}
                   />
                 )}
                 {dist.critical > 0 && (
                   <div
-                    className="rounded-full bg-(--red)"
-                    style={{ flex: dist.critical }}
+                    className="grow rounded-full bg-(--red)"
+                    style={{
+                      flexBasis: `${(dist.critical / distTotal) * 100}%`,
+                    }}
                   />
                 )}
               </div>
@@ -347,7 +353,7 @@ export default function PlatformHealthPage() {
       </div>
 
       {/* Service statuses */}
-      <div className="rounded-[14px] border border-borderbg-(--surface) p-5 shadow-(--card-shadow)">
+      <div className="rounded-[14px] border border-border bg-(--surface) p-5 shadow-(--card-shadow)">
         <p className="font-mono text-[10px] tracking-widest text-(--text-muted) mb-2">
           SERVICES
         </p>

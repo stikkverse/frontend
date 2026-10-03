@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
-import DashboardNav from "@/components/dashboard/DashboardNav";
+import DashboardNav from "@/components/dashboard/overview/DashboardNav";
 import { useUnacknowledgedCount } from "@/hooks/useAlerts";
 
 import BackgroundGrid from "@/components/shared/BackgroundGrid";

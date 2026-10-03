@@ -1,11 +1,11 @@
 "use client";
 
 import { useDashboardSummary, useDashboardMachines } from "@/hooks/useDashboard";
-import { getRiskColor, getHealthColor } from "@/lib/helper";
-import MetricCard from "@/components/dashboard/MetricCard";
-import AlertBanner from "@/components/dashboard/AlertBanner";
+import { getRiskColor, getHealthColor } from "@/lib/database/helper";
+import MetricCard from "@/components/dashboard/metric/MetricCard";
+import AlertBanner from "@/components/dashboard/alert/AlertBanner";
 import { useMillSummary } from "@/hooks/useMillSummary";
-import HealthRing from "@/components/dashboard/HealthRing";
+import HealthRing from "@/components/dashboard/metric/HealthRing";
 import Link from "next/link";
 
 function MetricSkeleton() {
