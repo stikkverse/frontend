@@ -4,6 +4,7 @@ import type {
   PlatformHealthResponse,
   MillActivityItem,
   AlertOverviewItem,
+  MillAlertsOverviewItem,
 } from "@/lib/database/type";
 
 export type MillSortKey =
@@ -22,6 +23,7 @@ const SA_KEYS = {
   millsActivity: (sortBy: MillSortKey, order: SortOrder) =>
     ["superadmin", "mills-activity", sortBy, order] as const,
   alertsOverview: () => ["superadmin", "alerts-overview"] as const,
+  alertsByMill: () => ["superadmin", "alerts-by-mill"] as const,
 };
 
 export function usePlatformHealth() {
@@ -61,6 +63,21 @@ export function useAlertsOverview() {
     queryFn: async () => {
       const { data } = await superadminAxios.get(
         "/api/v1/superadmin/alerts/overview",
+      );
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 20_000,
+    refetchInterval: 20_000,
+  });
+}
+
+export function useMillAlertsOverview() {
+  return useQuery<MillAlertsOverviewItem[]>({
+    queryKey: SA_KEYS.alertsByMill(),
+    queryFn: async () => {
+      const { data } = await superadminAxios.get(
+        "/api/v1/superadmin/alerts/overview",
+        { params: { group_by: "mill" } },
       );
       return Array.isArray(data) ? data : [];
     },

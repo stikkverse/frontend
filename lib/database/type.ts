@@ -402,11 +402,19 @@ export interface PlatformHealthResponse {
 export interface AlertOverviewItem {
   id: number;
   mill_id?: string | null;
-  machine_id: string;
+  machine_id?: string | null;
   type: string;
   message: string;
   timestamp: string;
   owner_email: string;
+}
+
+// Returned by GET /superadmin/alerts/overview?group_by=mill
+export interface MillAlertsOverviewItem {
+  mill_id?: string | null;
+  owner_email: string;
+  open_alerts: number;
+  alerts: AlertOverviewItem[];
 }
 
 export interface UserProfile {
